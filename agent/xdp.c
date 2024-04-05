@@ -1,4 +1,4 @@
-#include <linux/types.h>     // for __u8, __sum16
+#include <linux/types.h>     // for __u8, __sum16, u64
 #include <linux/if_ether.h> // for struct ethhdr
 #include <linux/ip.h>       // for struct iphdr
 
