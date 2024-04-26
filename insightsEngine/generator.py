@@ -44,11 +44,34 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": "Time: 2024-04-15T12:45:23Z\nType: System Call\nHost: 192.168.1.101\n"
+        "content": "Time: 2024-04-15T12:45:23Z\nType: System Call\nHost: 192.168.1.101\nInfo: 501, execve, /usr/local/bin/suspicious_script.sh"
       },
       {
         "role": "assistant",
-        "content": "Time: ###\nType: ###\nHost: ###\nSeverity: ###\nInfo: ###\nAction Items: ###"
+        "content": "Time: 2024-04-15T12:45:23Z\nType: System Call\nHost: 192.168.1.101\nSeverity: HIGH\n"
+        "Info: User 501 called 'execve' on '/usr/local/bin/suspicious_script.sh', potentially harmful behavior detected.\n"
+        "Action Items: 1. Terminate the process assosiated with the system call by running `kill -9 {pid}`.\n"
+        "2. Quarantine the file suspicious_script.sh by running `mv /usr/local/bin/suspicious_script.sh /quarantine/`.\n"
+        "For long term prevention, umplement the following actions:\n1. Change permissions on the quarantined script by running "
+        "`chmod 700 /quarantine/suspicious_script.sh`.\n2. Deploy intrusion detection/prevention systems like snort."
+      },
+      {
+        "role": "user",
+        "content": "Time: 2024-04-15T12:50:00Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 1234"
+      },
+      {
+        "role": "user",
+        "content": "Time: 2024-04-15T12:50:26Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 1244"
+      },
+      {
+        "role": "user",
+        "content": "Time: 2024-04-15T12:51:00Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 4834"
+      },
+      {
+        "role": "assistant",
+        "content": "Time: 2024-04-15T12:51:00Z\nType: System Call\nPotential Severity: CRITICAL\nLead: Multiple login attempts detected "
+        "from IP 192.168.1.105\nInfo: Over 20 failed login attempts in the last 5 minutes. Consider investigation the source IP and "
+        "applying IP-based blocking or rate limiting.\n To block this IP using iptables, use the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`"
       },
       {
         "role": "user",
@@ -68,11 +91,12 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": ""
+        "content": f"{ebpf_info}"
       },
-      {
-        "role": "assistant",
-        "content": "Time: ###\nType: ###\nHost: ###\nSeverity: ###\nInfo: ###\nAction Items: ###"
-      },
-    ]
+    ],
   )
+
+  return (
+    completion.choices[0].message.content + "\n"
+  )
+  
