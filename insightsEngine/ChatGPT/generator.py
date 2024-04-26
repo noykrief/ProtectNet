@@ -1,6 +1,7 @@
 # This will be the file where the chatGPT integrstion will happen and all functionswill be written here
 
 import os
+import csv
 import time
 import requests
 from openai import OpenAI
@@ -97,6 +98,34 @@ def generate_insights(ebpf_info):
   )
 
   return (
-    completion.choices[0].message.content + "\n"
+    completion.choices[0].message.content + "\n---------------------------------\n"
   )
   
+
+# POC Part - main function in order to be able to send data without the API from the agent.
+
+def main():
+  system_calls = []
+
+  # file to open after running the agent and saving data to a file for POC
+  with open("./ebpf_info.csv", newline="") as csvfile:
+    csv_reader = csv.reader(csvfile)
+    for row in csv_reader:
+      system_calls.append(row)
+
+  if system_calls:
+    print("Starting to analyze you data...")
+
+    potential_threats = []
+
+    for i, syscall in enumerate(system_calls, start=1):
+      print(f"\n({i}/{len(system_calls)})")
+
+      potential_threats.append(generate_insights(syscall))
+
+    print("Printing insights results...")
+    for syscall in potential_threats:
+      print(syscall)
+    
+if __name__ == "__main__":
+  main()
