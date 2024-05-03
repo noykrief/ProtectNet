@@ -6,15 +6,16 @@ import time
 import requests
 from openai import OpenAI
 from dotenv import load_dotenv
+from colorama import Fore
 
 
 # Load environemnt variables for interacting with ChatGPT
 load_dotenv()
 OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
 
+# The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
   client = OpenAI(api_key=OPENAI_API_KEY)
-  potential_threats = []
 
   completion = client.chat.completions.create(
     model="gpt-3.5-turbo-0125",
@@ -45,7 +46,14 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": "Time: 2024-04-15T12:45:23Z\nType: System Call\nHost: 192.168.1.101\nInfo: 501, execve, /usr/local/bin/suspicious_script.sh"
+        "content": [
+          {
+            "Time": "2024-04-15T12:45:23Z",
+            "Type": "System Call",
+            "Host": "192.168.1.101",
+            "Info": "501, execve, /usr/local/bin/suspicious_script.sh"
+          }
+        ]
       },
       {
         "role": "assistant",
@@ -58,15 +66,32 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": "Time: 2024-04-15T12:50:00Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 1234"
-      },
-      {
-        "role": "user",
-        "content": "Time: 2024-04-15T12:50:26Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 1244"
-      },
-      {
-        "role": "user",
-        "content": "Time: 2024-04-15T12:51:00Z\nType: System Call\nHost: 192.168.1.105\nInfo: Failed SSH connection from PID 4834"
+        "content": [
+          {
+            "Time": "2024-04-15T12:50:00Z",
+            "Type": "System Call",
+            "Host": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
+          },
+          {
+            "Time": "2024-04-15T12:50:26Z",
+            "Type": "System Call",
+            "Host": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
+          },
+          {
+            "Time": "2024-04-15T12:51:03Z",
+            "Type": "System Call",
+            "Host": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
+          },
+          {
+            "Time": "2024-04-15T12:51:43Z",
+            "Type": "System Call",
+            "Host": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
+          }
+        ]
       },
       {
         "role": "assistant",
@@ -92,13 +117,14 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": f"{ebpf_info}"
+        "content": ebpf_info
       },
     ],
   )
 
   return (
-    completion.choices[0].message.content + "\n---------------------------------\n"
+    completion.choices[0].message.content
+    + "\n---------------------------------------------------------------------------------\n"
   )
   
 
@@ -114,7 +140,7 @@ def main():
       system_calls.append(row)
 
   if system_calls:
-    print("Starting to analyze you data...")
+    print("Starting to analyze your data...")
 
     potential_threats = []
 
@@ -125,7 +151,14 @@ def main():
 
     print("Printing insights results...")
     for syscall in potential_threats:
-      print(syscall)
+      if ("LOW" in syscall):
+        print(Fore.WHITE, syscall)
+      elif ("MEDIUM" in syscall):
+        print(Fore.YELLOW, syscall)
+      elif ("HIGH" in syscall):
+        print(Fore.LIGHTRED_EX, syscall)
+      elif ("CRTICAL" in syscall):
+        print(Fore.RED, syscall)
     
 if __name__ == "__main__":
   main()
