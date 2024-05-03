@@ -133,6 +133,13 @@ def generate_insights(ebpf_info):
 def main():
   system_calls = []
 
+  severity_colors = {
+    "LOW": Fore.WHITE,
+    "MEDIUM": Fore.YELLOW,
+    "HIGH": Fore.LIGHTRED_EX,
+    "CRITICAL": Fore.RED
+  }
+
   # file to open after running the agent and saving data to a file for POC
   with open("./ebpf_info.csv", newline="") as csvfile:
     csv_reader = csv.reader(csvfile)
@@ -151,14 +158,10 @@ def main():
 
     print("Printing insights results...")
     for syscall in potential_threats:
-      if ("LOW" in syscall):
-        print(Fore.WHITE, syscall)
-      elif ("MEDIUM" in syscall):
-        print(Fore.YELLOW, syscall)
-      elif ("HIGH" in syscall):
-        print(Fore.LIGHTRED_EX, syscall)
-      elif ("CRTICAL" in syscall):
-        print(Fore.RED, syscall)
+      for severity, color in severity_colors.items():
+        if severity in syscall:
+          print(color, syscall)
+          break
     
 if __name__ == "__main__":
   main()
