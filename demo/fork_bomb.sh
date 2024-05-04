@@ -6,7 +6,7 @@ create_child_process() {
 	echo "Created child process with PID: $child_pid"
 }
 
-trap 'kill $(jobs -p); exit' SIGINT SIGRERM
+trap 'kill $(jobs -p); exit' SIGINT SIGTERM
 
 while true
 do
