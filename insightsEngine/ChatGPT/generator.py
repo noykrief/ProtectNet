@@ -4,7 +4,16 @@ import os
 import csv
 import time
 import requests
-from openai import OpenAI
+
+from gptcache.similarity_evaluation.distance import SearchDistanceEvaluation
+from gptcache.processor.post import temperature_softmax
+from gptcache.embeddings import Openai
+from gptcache.manager import manager_factory
+from gptcache.cache import get_data_manager
+from gptcache.core import cache, Cache
+from gptcache.adapter import openai
+from gptcache.session import Session
+# from openai import OpenAI
 from dotenv import load_dotenv
 from colorama import Fore
 
@@ -13,11 +22,26 @@ from colorama import Fore
 load_dotenv()
 OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
 
+# Building cache
+data_manager=manager_factory("sqlite","faiss", vector_params={"dimention": openai.dimention })
+
+centralizedCache = Cache()
+centralizedCache.init(
+  embeddings_func=openai.to_embeddings,
+  data_manager=data_manager,
+  similarity_evaluation=SearchDistanceEvaluation,
+  post_process_messages_func=temperature_softmax
+  )
+
+cache.set_openai_key()
+
+# Create ChatGPT Session
+session = Session(name="insightsGenerator")
+
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
-  client = OpenAI(api_key=OPENAI_API_KEY)
 
-  completion = client.chat.completions.create(
+  completion = openai.chatCompletion.create(
     model="gpt-3.5-turbo-0125",
     messages=[
       {
@@ -101,25 +125,11 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
-        "content": ""
-      },
-      {
-        "role": "assistant",
-        "content": "Time: ###\nType: ###\nHost: ###\nSeverity: ###\nInfo: ###\nAction Items: ###"
-      },
-      {
-        "role": "user",
-        "content": ""
-      },
-      {
-        "role": "assistant",
-        "content": "Time: ###\nType: ###\nHost: ###\nSeverity: ###\nInfo: ###\nAction Items: ###"
-      },
-      {
-        "role": "user",
         "content": ebpf_info
       },
     ],
+    cache_obj=centralizedCache,
+    session=session
   )
 
   return (
@@ -147,6 +157,7 @@ def main():
       system_calls.append(row)
 
   if system_calls:
+    print(system_calls)
     print("Starting to analyze your data...")
 
     potential_threats = []
@@ -154,14 +165,14 @@ def main():
     for i, syscall in enumerate(system_calls, start=1):
       print(f"\n({i}/{len(system_calls)})")
 
-      potential_threats.append(generate_insights(syscall))
+      # potential_threats.append(generate_insights(syscall))
 
     print("Printing insights results...")
-    for syscall in potential_threats:
-      for severity, color in severity_colors.items():
-        if severity in syscall:
-          print(color, syscall)
-          break
+    # for syscall in potential_threats:
+    #   for severity, color in severity_colors.items():
+    #     if severity in syscall:
+    #       print(color, syscall)
+    #       break
     
 if __name__ == "__main__":
   main()
