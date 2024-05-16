@@ -3,47 +3,29 @@ import csv
 import time
 import requests
 
-# from gptcache.similarity_evaluation.distance import SearchDistanceEvaluation
-# from gptcache.processor.post import temperature_softmax
-# from gptcache.manager import manager_factory
-# from gptcache.cache import get_data_manager
-# from gptcache.core import cache, Cache
-# from gptcache.adapter import openai
+from gptcache.adapter import openai
 from gptcache.session import Session
 from gptcache import cache
-from openai import OpenAI
+from os.path import join, dirname
+
+# from openai import OpenAI
 from dotenv import load_dotenv
 from colorama import Fore
 
+# Init cache
+cache.init()
+cache.set_openai_key()
 
 # Load environemnt variables for interacting with ChatGPT
-load_dotenv()
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
-
-# Building cache
-# data_manager=manager_factory("sqlite","faiss", vector_params={"dimention": openai.dimention })
-# data_manager = get_data_manager()
-
-
-# centralizedCache = Cache()
-# centralizedCache.init(
-#   embeddings_func=openai.to_embeddings,
-#   data_manager=data_manager,
-#   similarity_evaluation=SearchDistanceEvaluation,
-#   post_process_messages_func=temperature_softmax
-#   )
-
-# cache.init()
-# cache.set_openai_key()
-
-# Create ChatGPT Session
-# session = Session(name="insightsGenerator")
 
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
-  client = OpenAI(api_key=OPENAI_API_KEY)
+  # client = OpenAI(api_key=OPENAI_API_KEY)
 
-  completion = client.chat.completions.create(
+  completion = openai.Completion.create(
     model="gpt-3.5-turbo-0125",
     messages=[
       {
@@ -129,9 +111,7 @@ def generate_insights(ebpf_info):
         "role": "user",
         "content": str(ebpf_info)
       },
-    ],
-    # cache_obj=centralizedCache,
-    # session=session
+    ]
   )
 
   return (
@@ -148,8 +128,8 @@ def main():
   severity_colors = {
     "LOW": Fore.WHITE,
     "MEDIUM": Fore.YELLOW,
-    "HIGH": Fore.LIGHTRED_EX,
-    "CRITICAL": Fore.RED
+    "HIGH": Fore.RED,
+    "CRITICAL": Fore.LIGHTRED_EX
   }
 
   # file to open after running the agent and saving data to a file for POC
