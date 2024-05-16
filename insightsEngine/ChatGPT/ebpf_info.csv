@@ -1,8 +1,8 @@
 Time,Type,Host,Info
-29/03/2023 08:00:01,system call,192.168.1.12,{1234,sshd,accept,"{sockfd: 5, addr: 0x7ffd2d3f7290, addrlen: 16}"}
-29/03/2023 08:01:15,system call,192.168.1.12,{5678,nginx,recvfrom,"{sockfd: 10, buf: 0x7fffbf2b42c0, len: 1024, flags: 0, src_addr: 0x7ffd2d3f7290, addrlen: 16}"}
-29/03/2023 08:02:30,system call,192.168.1.12,{7890,apache2,mmap,"{addr: 0x0, length: 4096, prot: PROT_READ|PROT_WRITE, flags: MAP_PRIVATE|MAP_ANONYMOUS, fd: -1, offset: 0}"}
-29/03/2023 08:03:45,system call,192.168.1.12,{2345,sshd,execve,"{filename: ""/bin/bash"", argv: [""/bin/bash"", ""-c"", ""/usr/bin/python3 -m SimpleHTTPServer""], envp: [...]} "}
-29/03/2023 08:05:00,system call,192.168.1.12,{6789,sudo,chown,"{filename: ""/etc/passwd"", user: ""root"", group: ""root""}"}
-29/03/2023 08:06:20,system call,192.168.1.12,{3456,apache2,access,"{filename: ""/etc/shadow"", mode: R_OK}"}
-29/03/2023 08:09:00,system call,192.168.1.12,{6724,sudo,chown,"{filename: ""/etc/passwd"", user: ""root"", group: ""root""}"}
+29/03/2023 08:00:01,system call,192.168.1.12,'{1234,sshd,accept,"{sockfd: 5, addr: 0x7ffd2d3f7290, addrlen: 16}"}'
+29/03/2023 08:01:15,system call,192.168.1.12,'{5678,nginx,recvfrom,"{sockfd: 10, buf: 0x7fffbf2b42c0, len: 1024, flags: 0, src_addr: 0x7ffd2d3f7290, addrlen: 16}"}'
+29/03/2023 08:02:30,system call,192.168.1.12,'{7890,apache2,mmap,"{addr: 0x0, length: 4096, prot: PROT_READ|PROT_WRITE, flags: MAP_PRIVATE|MAP_ANONYMOUS, fd: -1, offset: 0}"}'
+29/03/2023 08:03:45,system call,192.168.1.12,'{2345,sshd,execve,"{filename: ""/bin/bash"", argv: [""/bin/bash"", ""-c"", ""/usr/bin/python3 -m SimpleHTTPServer""], envp: [...]} "}'
+29/03/2023 08:05:00,system call,192.168.1.12,'{6789,sudo,chown,"{filename: ""/etc/passwd"", user: ""root"", group: ""root""}"}'
+29/03/2023 08:06:20,system call,192.168.1.12,'{3456,apache2,access,"{filename: ""/etc/shadow"", mode: R_OK}"}'
+29/03/2023 08:09:00,system call,192.168.1.12,'{6724,sudo,chown,"{filename: ""/etc/passwd"",user: ""root"",group: ""root""}"}'
