@@ -1,16 +1,13 @@
-# This will be the file where the chatGPT integrstion will happen and all functionswill be written here
-
 import os
 import csv
 import time
 import requests
 
-from gptcache.similarity_evaluation.distance import SearchDistanceEvaluation
-from gptcache.processor.post import temperature_softmax
-from gptcache.embeddings import Openai
-from gptcache.manager import manager_factory
-from gptcache.cache import get_data_manager
-from gptcache.core import cache, Cache
+# from gptcache.similarity_evaluation.distance import SearchDistanceEvaluation
+# from gptcache.processor.post import temperature_softmax
+# from gptcache.manager import manager_factory
+# from gptcache.cache import get_data_manager
+# from gptcache.core import cache, Cache
 from gptcache.adapter import openai
 from gptcache.session import Session
 # from openai import OpenAI
@@ -23,17 +20,19 @@ load_dotenv()
 OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
 
 # Building cache
-data_manager=manager_factory("sqlite","faiss", vector_params={"dimention": openai.dimention })
+# data_manager=manager_factory("sqlite","faiss", vector_params={"dimention": openai.dimention })
+# data_manager = get_data_manager()
 
-centralizedCache = Cache()
-centralizedCache.init(
-  embeddings_func=openai.to_embeddings,
-  data_manager=data_manager,
-  similarity_evaluation=SearchDistanceEvaluation,
-  post_process_messages_func=temperature_softmax
-  )
 
-cache.set_openai_key()
+# centralizedCache = Cache()
+# centralizedCache.init(
+#   embeddings_func=openai.to_embeddings,
+#   data_manager=data_manager,
+#   similarity_evaluation=SearchDistanceEvaluation,
+#   post_process_messages_func=temperature_softmax
+#   )
+
+# cache.set_openai_key()
 
 # Create ChatGPT Session
 session = Session(name="insightsGenerator")
@@ -128,7 +127,7 @@ def generate_insights(ebpf_info):
         "content": ebpf_info
       },
     ],
-    cache_obj=centralizedCache,
+    # cache_obj=centralizedCache,
     session=session
   )
 
@@ -151,9 +150,10 @@ def main():
   }
 
   # file to open after running the agent and saving data to a file for POC
-  with open("./ebpf_info.csv", newline="") as csvfile:
-    csv_reader = csv.reader(csvfile)
+  with open("insightsEngine\ChatGPT\ebpf_info.csv", newline="") as csvfile:
+    csv_reader = csv.DictReader(csvfile)
     for row in csv_reader:
+      print(row)
       system_calls.append(row)
 
   if system_calls:
@@ -165,14 +165,14 @@ def main():
     for i, syscall in enumerate(system_calls, start=1):
       print(f"\n({i}/{len(system_calls)})")
 
-      # potential_threats.append(generate_insights(syscall))
+      potential_threats.append(generate_insights(syscall))
 
     print("Printing insights results...")
-    # for syscall in potential_threats:
-    #   for severity, color in severity_colors.items():
-    #     if severity in syscall:
-    #       print(color, syscall)
-    #       break
+    for syscall in potential_threats:
+      for severity, color in severity_colors.items():
+        if severity in syscall:
+          print(color, syscall)
+          break
     
 if __name__ == "__main__":
   main()
