@@ -8,7 +8,6 @@ import requests
 # from gptcache.session import Session
 # from gptcache import cache
 from openai import OpenAI
-from os.path import join, dirname
 
 # from openai import OpenAI
 from dotenv import load_dotenv
@@ -19,9 +18,9 @@ from colorama import Fore
 # cache.set_openai_key()
 
 # Configure dataset files in a list
-metrics = ["syscalls"]
-labled_dataset_dir = 'datasets\labled'
-trained_dataset_dir = 'datasets\\trained'
+# metrics = ["syscalls"]
+# labled_dataset_dir = 'datasets\labled'
+# trained_dataset_dir = 'datasets\\trained'
 
 # Load environemnt variables for interacting with ChatGPT
 load_dotenv()
@@ -209,7 +208,7 @@ def main():
     print("Printing insights results...")
     for syscall in potential_threats:
       for severity, color in severity_colors.items():
-        if severity == syscall['Severity']:
+        if severity.lower() == syscall['Severity'].lower():
           print(color, syscall)
           break
     
