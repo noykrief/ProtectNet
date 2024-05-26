@@ -37,11 +37,15 @@ b.attach_kprobe(event="__arm64_sys_vfork", fn_name="trace_fork")
 
 print("Tracing forks... Hit Ctrl-C to end.")
 
-# Print output
+# Open the log file
+logfile = open("metrics.log", "a")
+
+# Print the output
 while True:
     try:
         sleep(1)
     except KeyboardInterrupt:
+        logfile.close()
         exit()
     # Read trace pipe
     while True:
@@ -56,6 +60,8 @@ while True:
                 # Get current time
                 timestamp = int(time.time())
                 # Log the metrics
-                print(f"{timestamp}, {log_pid}, {log_tgid}, {hostname}, {log_count}")
+                log_entry = f"{timestamp}, {log_pid}, {log_tgid}, {hostname}, {log_count}\n"
+                print(log_entry.strip())
+                logfile.write(log_entry)
         else:
             break
