@@ -6,6 +6,7 @@ This script uses eBPF (extended Berkeley Packet Filter) to monitor and detect po
 
 ### Logged Metrics
 
+Logs are written into `metrics.log` as well is being printed to the console.
 - **timestamp:** Unix timestamp of the log entry.
 - **pid:** Process ID of the forking process.
 - **tgid:** Thread Group ID.
