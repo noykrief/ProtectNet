@@ -42,7 +42,7 @@ Logs are written into `metrics.log` as well is being printed to the console.
 
 4. **Install the BCC Python bindings:**
     ```bash
-    sudo pip3 install bcc numba
+    sudo apt install python3-bcc python3-numba
     ```
 
 #### For Fedora/CentOS
