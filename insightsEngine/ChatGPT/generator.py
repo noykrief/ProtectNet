@@ -1,33 +1,16 @@
 import os
 import csv
 import ast
-import time
-import requests
 
-# from gptcache.adapter import openai
-# from gptcache.session import Session
-# from gptcache import cache
 from openai import OpenAI
-
-# from openai import OpenAI
 from dotenv import load_dotenv
 from colorama import Fore
 
-# Init cache
-# cache.init()
-# cache.set_openai_key()
-
-# Configure dataset files in a list
-# metrics = ["syscalls"]
-# labled_dataset_dir = 'datasets\labled'
-# trained_dataset_dir = 'datasets\\trained'
 
 # Load environemnt variables for interacting with ChatGPT
 load_dotenv()
 OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
         
-# TODO: some function that get data from csv file and gathers it to a unified list, sends it for insights and makes an object to chatAPI(role - user, content - list + role - assistant, content - list)
-
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
   client = OpenAI()
@@ -193,7 +176,7 @@ def main():
   }
 
   # file to open after running the agent and saving data to a file for POC
-  with open("insightsEngine\ChatGPT\ebpf_info.csv", newline="") as csvfile:
+  with open("agent/metrics.csv", newline="") as csvfile:
     csv_reader = csv.DictReader(csvfile)
     for row in csv_reader:
       system_calls.append(row)

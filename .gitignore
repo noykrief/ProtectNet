@@ -1,4 +1,4 @@
-datasets/labled
+datasets/
 .env
 insightsEngine/ChatGPT/insert_raw_data.py
 *.txt
