@@ -176,7 +176,7 @@ def main():
   }
 
   # file to open after running the agent and saving data to a file for POC
-  with open("agent/metrics.csv", newline="") as csvfile:
+  with open(f"agent/metrics-{os.getenv('TS')}.csv", newline="") as csvfile:
     csv_reader = csv.DictReader(csvfile)
     for row in csv_reader:
       system_calls.append(row)
@@ -191,7 +191,7 @@ def main():
     print("Printing insights results...")
     for syscall in potential_threats:
       for severity, color in severity_colors.items():
-        if severity.lower() == syscall['Severity'].lower():
+        if severity.lower() == syscall['Severity'].lower() or severity.lower() == syscall['Potential Severity'].lower():
           print(color, syscall)
           break
     
