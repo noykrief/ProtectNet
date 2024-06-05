@@ -1,7 +1,10 @@
 from bcc import BPF
 from time import sleep
+from os import environ as env
 import socket
 import time
+import json
+import csv
 
 # Get the hostname
 hostname = socket.gethostname()
@@ -31,21 +34,25 @@ int trace_fork(struct pt_regs *ctx) {
 
 # Load eBPF program
 b = BPF(text=prog)
-b.attach_kprobe(event="__arm64_sys_clone", fn_name="trace_fork")
-b.attach_kprobe(event="__arm64_sys_fork", fn_name="trace_fork")
-b.attach_kprobe(event="__arm64_sys_vfork", fn_name="trace_fork")
+b.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
+b.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
+b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
 print("Tracing forks... Hit Ctrl-C to end.")
 
-# Open the log file
-logfile = open("metrics.log", "a")
+# Open the csv file and write the headers of the file
+env['TS'] = str(time.time())
+headers = ["Time","Type","Host","Info"]
+csvfile = open(f"metrics-{env.get('TS')}.csv", "a")
+writer = csv.DictWriter(csvfile, fieldnames=headers)
+writer.writeheader()
 
 # Print the output
 while True:
     try:
         sleep(1)
     except KeyboardInterrupt:
-        logfile.close()
+        csvfile.close()
         exit()
     # Read trace pipe
     while True:
@@ -60,8 +67,14 @@ while True:
                 # Get current time
                 timestamp = int(time.time())
                 # Log the metrics
-                log_entry = f"{timestamp}, {log_pid}, {log_tgid}, {hostname}, {log_count}\n"
+                log_entry = f"{log_pid},{log_tgid},{log_count}"
+                log_obj = {
+                        "Time": f"{timestamp}",
+                        "Type": "system call",
+                        "Host": f"{hostname}",
+                        "Info": f"{log_entry}"
+                        }
                 print(log_entry.strip())
-                logfile.write(log_entry)
+                writer.writerow(log_obj)
         else:
             break

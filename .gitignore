@@ -1,3 +1,7 @@
+datasets/
+.env
+insightsEngine/ChatGPT/insert_raw_data.py
+*.txt
 **/metrics.log
 *.swp
 __pycache__/
