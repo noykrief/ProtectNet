@@ -9,7 +9,7 @@ from colorama import Fore
 
 # Load environemnt variables for interacting with ChatGPT
 load_dotenv()
-OPENAI_API_KEY=os.getenv("OEPNAI_API_KEY")
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
         
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
