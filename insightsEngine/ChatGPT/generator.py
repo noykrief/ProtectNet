@@ -3,13 +3,8 @@ import csv
 import ast
 
 from openai import OpenAI
-from dotenv import load_dotenv
 from colorama import Fore
 
-
-# Load environemnt variables for interacting with ChatGPT
-load_dotenv()
-OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
         
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
@@ -155,6 +150,50 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "user",
+        "content": ",".join(str(element) for element in [
+          {
+            "Time": "2024-07-01T20:06:38Z",
+            "Log Type": "System Call",
+            "Host": "192.168.1.110",
+            "Info": "428892,428892,73"
+          },
+          {
+            "Time": "2024-07-01T20:06:39Z",
+            "Log Type": "System Call",
+            "Host": "192.168.1.110",
+            "Info": "428892,428892,74"
+          },
+          {
+            "Time": "2024-07-01T20:06:40Z",
+            "Log Type": "System Call",
+            "Host": "192.168.1.110",
+            "Info": "428892,428892,75"
+          },
+          {
+            "Time": "2024-07-01T20:06:41Z",
+            "Log Type": "System Call",
+            "Host": "192.168.1.110",
+            "Info": "428892,428892,76"
+          }
+        ])
+      },
+      {
+        "role": "assistant",
+        "content": ",".join(str(element) for element in [
+          {
+            "Time": "2024-07-01T20:06:41Z",
+            "Log Type": "System Call",
+            "Potential Severity": "HIGH",
+            "Lead": "Many processes got opened on IP 192.168.1.110 by process with PID 428892",
+            "Info": "Over 20 processes got opened by PID 428892 in the last 5 minutes.\n"
+            "It seems like some process is trying to perform some malicious actions.\n"
+            "Consider investigating the source IP and PID in order to avoid security risks.\n"
+            "To kill the source PID, use the following command: `sudo kill -9 PID`"
+          }
+        ])
+      },
+      {
+        "role": "user",
         "content": ",".join(str(element) for element in ebpf_info)
       }
     ]
@@ -176,7 +215,7 @@ def main():
   }
 
   # file to open after running the agent and saving data to a file for POC
-  with open(f"agent/metrics-{os.getenv('TS')}.csv", newline="") as csvfile:
+  with open(f"metrics.csv", newline="") as csvfile:
     csv_reader = csv.DictReader(csvfile)
     for row in csv_reader:
       system_calls.append(row)
@@ -190,8 +229,13 @@ def main():
 
     print("Printing insights results...")
     for syscall in potential_threats:
+      if 'Severity' in syscall:
+          severity_field = 'Severity'
+      elif 'Potential Severity' in syscall:
+          severity_field = 'Potential Severity'
+              
       for severity, color in severity_colors.items():
-        if severity.lower() == syscall['Severity'].lower() or severity.lower() == syscall['Potential Severity'].lower():
+        if severity.lower() == syscall[severity_field].lower():
           print(color, syscall)
           break
     

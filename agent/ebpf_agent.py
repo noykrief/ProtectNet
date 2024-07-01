@@ -1,6 +1,7 @@
 from bcc import BPF
 from time import sleep
 from os import environ as env
+from datetime import datetime
 import socket
 import time
 import json
@@ -41,9 +42,8 @@ b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 print("Tracing forks... Hit Ctrl-C to end.")
 
 # Open the csv file and write the headers of the file
-env['TS'] = str(time.time())
 headers = ["Time","Type","Host","Info"]
-csvfile = open(f"metrics-{env.get('TS')}.csv", "a")
+csvfile = open(f"metrics.csv", "a")
 writer = csv.DictWriter(csvfile, fieldnames=headers)
 writer.writeheader()
 
@@ -65,7 +65,7 @@ while True:
                 log_tgid = int(parts[1])
                 log_count = int(parts[2])
                 # Get current time
-                timestamp = int(time.time())
+                timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
                 # Log the metrics
                 log_entry = f"{log_pid},{log_tgid},{log_count}"
                 log_obj = {
