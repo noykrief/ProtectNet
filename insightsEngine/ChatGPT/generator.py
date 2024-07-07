@@ -1,11 +1,24 @@
 import os
 import csv
 import ast
+import logging
+import logging_loki
 
 from openai import OpenAI
 from colorama import Fore
 
-        
+# Setup Loki configurations in order to send logs        
+logging_loki.emitter.LokiEmitter.level_tag = "level"
+
+handler = logging_loki.LokiHandler(
+        url="http://10.10.248.155:3100/loki/api/v1/push",
+        version="1",
+        )
+
+logger = logging.getLogger("LokiLogger")
+
+logger.addHandler(handler)
+
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
   client = OpenAI()
@@ -202,17 +215,10 @@ def generate_insights(ebpf_info):
   return (completion.choices[0].message.content)
   
 
-# POC Part - main function in order to be able to send data without the API from the agent.
+# Main function in order to be able to send data without the API from the agent.
 def main():
   system_calls = []
-
-  severity_colors = {
-    "NEUTRAL": Fore.GREEN,
-    "LOW": Fore.WHITE,
-    "MEDIUM": Fore.YELLOW,
-    "HIGH": Fore.RED,
-    "CRITICAL": Fore.LIGHTRED_EX
-  }
+  severity_field = "Potential Severity"
 
   # file to open after running the agent and saving data to a file for POC
   with open(f"metrics.csv", newline="") as csvfile:
@@ -233,11 +239,28 @@ def main():
           severity_field = 'Severity'
       elif 'Potential Severity' in syscall:
           severity_field = 'Potential Severity'
-              
-      for severity, color in severity_colors.items():
-        if severity.lower() == syscall[severity_field].lower():
-          print(color, syscall)
-          break
+     
+      severity = syscall[severity_field].lower()
+      match severity:
+          case "neutral":
+              logger.info(syscall)
+              print(syscall)
+          case "low":
+              logger.info(syscall)
+              print(syscall)
+          case "medium":
+              logger.warning(syscall)
+              print(syscall)
+          case "high":
+              logger.error(syscall)
+              print(syscall)
+          case "critical":
+              logger.error(syscall)
+              print(syscall)
+          case _:
+              logger.info(syscall)
+              print(syscall)
+
     
 if __name__ == "__main__":
   main()
