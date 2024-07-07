@@ -235,14 +235,12 @@ def main():
 
     print("Printing insights results...")
     for syscall in potential_threats:
-      print(syscall)
       if 'Severity' in syscall:
           severity_field = 'Severity'
       elif 'Potential Severity' in syscall:
           severity_field = 'Potential Severity'
      
       severity = syscall[severity_field].lower()
-      print(severity)
       match severity:
           case "neutral":
               logger.info(syscall)
