@@ -3,6 +3,7 @@ import csv
 import ast
 import logging
 import logging_loki
+from pymongo import MongoClient
 
 from openai import OpenAI
 from colorama import Fore
@@ -18,6 +19,12 @@ handler = logging_loki.LokiHandler(
 logger = logging.getLogger("LokiLogger")
 
 logger.addHandler(handler)
+
+# MongoDB connection setup
+client = MongoClient("mongodb://localhost:27717/")
+db = client["agents_metrics"]  # replace with your database name
+collection = db["metrics"]
+
 
 # The function defines the bot's purpose and sends the data for analysis
 def generate_insights(ebpf_info):
@@ -220,11 +227,10 @@ def main():
   system_calls = []
   severity_field = "Potential Severity"
 
-  # file to open after running the agent and saving data to a file for POC
-  with open(f"metrics.csv", newline="") as csvfile:
-    csv_reader = csv.DictReader(csvfile)
-    for row in csv_reader:
-      system_calls.append(row)
+# Append events stored on MongoDB
+  cursor = collection.find({})
+  for document in cursor:
+    system_calls.append(document)
 
   if system_calls:
     print("Starting to analyze your data...")
