@@ -22,7 +22,7 @@ logger.addHandler(handler)
 
 # MongoDB connection setup
 client = MongoClient("mongodb://localhost:27717/")
-db = client["agents_metrics"]  # replace with your database name
+db = client["agents_metrics"]
 collection = db["metrics"]
 
 
