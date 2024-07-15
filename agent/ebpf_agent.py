@@ -10,31 +10,8 @@ import csv
 # Get the hostname
 hostname = socket.gethostname()
 
-# Define eBPF program
-prog = """
-#include <uapi/linux/ptrace.h>
-#include <linux/sched.h>
-
-BPF_HASH(fork_count, u32, u64);
-
-int trace_fork(struct pt_regs *ctx) {
-    u32 pid = bpf_get_current_pid_tgid() >> 32;
-    u64 zero = 0, *count;
-
-    count = fork_count.lookup_or_init(&pid, &zero);
-    (*count)++;
-
-    // Print information when the count exceeds a threshold
-    if (*count > 10) {
-        bpf_trace_printk("%u %u %llu\\n", pid, bpf_get_current_pid_tgid(), *count);
-    }
-
-    return 0;
-}
-"""
-
 # Load eBPF program
-b = BPF(text=prog)
+b = BPF(src_file="fork_bomb.c")
 b.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
 b.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
 b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
