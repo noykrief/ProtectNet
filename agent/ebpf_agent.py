@@ -2,6 +2,7 @@ from bcc import BPF
 from time import sleep
 from os import environ as env
 from datetime import datetime
+import requests
 import socket
 import time
 import json
@@ -18,18 +19,11 @@ b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
 print("Tracing forks... Hit Ctrl-C to end.")
 
-# Open the csv file and write the headers of the file
-headers = ["Time","Type","Host","Info"]
-csvfile = open(f"metrics.csv", "a")
-writer = csv.DictWriter(csvfile, fieldnames=headers)
-writer.writeheader()
-
 # Print the output
 while True:
     try:
         sleep(1)
     except KeyboardInterrupt:
-        csvfile.close()
         exit()
     # Read trace pipe
     while True:
@@ -52,6 +46,6 @@ while True:
                         "Info": f"{log_entry}"
                         }
                 print(log_entry.strip())
-                writer.writerow(log_obj)
+                requests.post("http://10.10.248.155:5000", json=log_obj)
         else:
             break
