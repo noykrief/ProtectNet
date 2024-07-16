@@ -1,2 +1,0 @@
-Time,Type,Host,Info
-29/03/2023 08:00:01,system call,192.168.1.12,'{1234,sshd,accept,"{sockfd: 5, addr: 0x7ffd2d3f7290, addrlen: 16}"}'
