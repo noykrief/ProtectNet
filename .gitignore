@@ -1,5 +1,6 @@
 datasets/
 .env
+.venv/
 insightsEngine/ChatGPT/insert_raw_data.py
 *.txt
 **/metrics.log
