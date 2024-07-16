@@ -37,26 +37,18 @@ def generate_insights(ebpf_info):
       {
         "role": "system",
         "content": "You are a helpful assistant designed to identify security threats, anomalies and performance issues"
-        "from a streaming data (parameters from function call every few seconds) of system calls, network and kernel" 
-        "information collected through eBPF agents.",
+        "from streaming data relating system calls, network and kernel, collected through eBPF.",
       },
       {
         "role": "system",
-        "content": "For each list of JSONs you get, go through these steps: \n"
-        "1. Print every log containing a suspicious method that can be a potential security threat.\n"
-        "2. The header of your response should be:\nTime: 'timestamp',\nLog Type: 'log_type',\nHost: 'hostname',\n"
-        "Severity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,\nInfo: 'information',\nAction Items: 'action_items'.\n"
-        "Severity should be chosen wisely from the list, according to the potential threat of the log."
-        "Info should contain your inferred explanation in simple words of what the log says (what is the problem)."
-        "Action Items should contain technical steps needed to perform in order to solve the problem (you will provide them)."
-        "3. Gather same logs from different hostnames together if the problem looks the same or you infer a wide"
-        "security problem. Gather logs the repeat in logs several times on the same hostname.\n The header of these kind of response should be:\nTime: 'timestamp',\n"
-        "Log Type: 'log_type',\nHost: 'hostname',\nPotential Severity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,\nLead: 'lead',\nInfo: 'information'.\n"
-        "Potential Severity should be chosen wisely from the list, according to the potential threat you infer might be."
-        "Lead should contain a short explanation of all gathered look-alike logs, inffered by you."
-        "Info should contain your inferred more detailed information about the potential threat and a suggestion for an action item."
-        "Mention in header all hostnames relevant.\n"
-        "4. Censor passwords in the output.\n"
+        "content": "For each list of JSONs: \n1. Print logs with suspicious methods indicating potential security threats."
+        "\n2. Use this header:\nTime: 'timestamp',\nLog Type: 'log_type',\nHosts: 'hostnames',"
+        "\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
+        "\nLead: 'lead',\nInfo: 'information',\nAction Items: 'action_items'.\n- Severity: Based on inferred threat level."
+        "\n- Lead: Explain the gathered logs.\n- Info: Detailed threat information."
+        "\n- Action Items: suggest immediate actions to address the potential threat."
+        "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
+        "\n4. Censor passwords in the output."
       },
       {
         "role": "user",
@@ -72,18 +64,6 @@ def generate_insights(ebpf_info):
             "Log Type": "System Call",
             "Host": "192.168.1.105",
             "Info": "Failed SSH connection from PID 1234"
-          },
-          {
-            "Time": "2024-04-15T12:51:03Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.105",
-            "Info": "Failed SSH connection from PID 1234"
-          },
-          {
-            "Time": "2024-04-15T12:51:43Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.105",
-            "Info": "Failed SSH connection from PID 1234"
           }
         ])
       },
@@ -93,40 +73,23 @@ def generate_insights(ebpf_info):
           {
             "Time": "2024-04-15T12:51:00Z",
             "Log Type": "System Call",
-            "Potential Severity": "CRITICAL",
+            "Hosts": ["192.168.1.105"],
+            "Severity": "MEDIUM",
             "Lead": "Multiple login attempts detected from IP 192.168.1.105",
-            "Info": "Over 20 failed login attempts in the last 5 minutes.\n"
-            "Consider investigation the source IP and applying IP-based blocking or rate limiting.\n"
-            "To block this IP using iptables, use the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`"
+            "Info": "The host is vulnerable to DOS attack / port scan on port 22",
+            "Action Items": ["Consider investigation the source IP and applying IP-based blocking or rate limiting.\n"
+            "To block this IP using iptables, use the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`"]
           }
         ])
       },
       {
         "role": "user",
         "content": ",".join(str(element) for element in [
-          {
-            "Time": "2024-04-15T12:45:23Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.101",
-            "Info": "501, execve, /usr/local/bin/suspicious_script.sh"
-          },
           {
             "Time": "2024-04-15T12:47:15Z",
             "Log Type": "System Call",
             "Host": "192.168.1.102",
-            "Info": "502, open, /etc/passwd"
-          },
-          {
-            "Time": "2024-04-15T12:50:10Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.105",
-            "Info": "505, execve, /bin/cat, /etc/passwd"
-          },
-          {
-            "Time": "2024-04-15T12:53:30Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.107",
-            "Info": "507, open, /etc/ssh/sshd_config"
+            "Info": "502, open, /etc/shadow"
           }
         ])
       },
@@ -134,81 +97,13 @@ def generate_insights(ebpf_info):
         "role": "assistant",
         "content": ",".join(str(element) for element in [
           {
-            "Time": "2024-04-15T12:45:23Z",
+            "Time": "2024-04-15T12:47:15Z",
             "Log Type": "System Call",
-            "Host": "192.168.1.101",
-            "Severity": "HIGH",
-            "Info": "User 501 called 'execve' on '/usr/local/bin/suspicious_script.sh', potentially harmful behavior detected.",
-            "Action Items": [
-              "Terminate the process associated with the system call by running `kill -9 1234`.",
-              "Quarantine the file suspicious_script.sh by running `mv /usr/local/bin/suspicious_script.sh /quarantine/`.",
-              "For long-term prevention, implement the following actions:",
-              "Change permissions on the quarantined script by running `chmod 700 /quarantine/suspicious_script.sh`.",
-              "Deploy intrusion detection/prevention systems like snort."
-            ]
-          },
-          {
-            "Time": "2024-04-15T12:50:10Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.105",
+            "Hosts": ["192.168.1.102"],
             "Severity": "NEUTRAL",
-            "Info": "User 505 called 'execve' on '/bin/cat, /etc/passwd'. This action is not necessarily harmful but may warrant monitoring.",
-            "Action Items": []
-          },
-          {
-            "Time": "2024-04-15T12:53:30Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.107",
-            "Severity": "MEDIUM",
-            "Info": "User 507 called 'open' on '/etc/ssh/sshd_config'. This action could potentially expose sensitive system configuration. It requires further investigation.",
-            "Action Items": [
-              "Review the access control list for /etc/ssh/sshd_config to ensure appropriate permissions are set.",
-              "Monitor any changes to /etc/ssh/sshd_config closely for signs of tampering or unauthorized access."
-            ]
-          }
-        ])
-      },
-      {
-        "role": "user",
-        "content": ",".join(str(element) for element in [
-          {
-            "Time": "2024-07-01T20:06:38Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.110",
-            "Info": "428892,428892,73"
-          },
-          {
-            "Time": "2024-07-01T20:06:39Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.110",
-            "Info": "428892,428892,74"
-          },
-          {
-            "Time": "2024-07-01T20:06:40Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.110",
-            "Info": "428892,428892,75"
-          },
-          {
-            "Time": "2024-07-01T20:06:41Z",
-            "Log Type": "System Call",
-            "Host": "192.168.1.110",
-            "Info": "428892,428892,76"
-          }
-        ])
-      },
-      {
-        "role": "assistant",
-        "content": ",".join(str(element) for element in [
-          {
-            "Time": "2024-07-01T20:06:41Z",
-            "Log Type": "System Call",
-            "Potential Severity": "HIGH",
-            "Lead": "Many processes got opened on IP 192.168.1.110 by process with PID 428892",
-            "Info": "Over 20 processes got opened by PID 428892 in the last 5 minutes.\n"
-            "It seems like some process is trying to perform some malicious actions.\n"
-            "Consider investigating the source IP and PID in order to avoid security risks.\n"
-            "To kill the source PID, use the following command: `sudo kill -9 PID`"
+            "Lead": "PID 502 attempted to open a sensitive file",
+            "Info": "Sensitive data could be exposed",
+            "Action Items": ["Manage ACL on the sensitive file", "Kill suspicious PID 502 using `sudo kill -p PID`"]
           }
         ])
       },
