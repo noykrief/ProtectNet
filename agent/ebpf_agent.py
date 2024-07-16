@@ -46,6 +46,6 @@ while True:
                         "Info": f"{log_entry}"
                         }
                 print(log_entry.strip())
-                requests.post("http://10.10.248.155:5000", json=log_obj)
+                requests.post("http://10.10.248.155:5000/data", json=log_obj)
         else:
             break
