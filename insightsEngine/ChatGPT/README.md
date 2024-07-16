@@ -7,10 +7,15 @@ The insightsEngine will print the insights in colors according to the severity d
 
 ## Prerequisites
 
-1. Install all python packages written in requirements.txt file using the follwoign command: `pip3 install -r requirements.txt`.
-2. Export the environment variable OPENAI_API_KEY and put ChatGPT API key inside with the following command: `export OPENAI_API_KEY=<content>`.
-3. Change the permissions on the generator file to be executable, with `chmod +x generator.py`.
-4. If you run only the generator without the agent, make sure that the sample metrics file is inside the agent directory.
+1. Create a local virtual environment using the following commands:
+```
+$ python3 -m venv .venv
+$ source ~/.venv/bin/activate
+```
+2. Install all python packages written in requirements.txt file using the follwoign command: `pip3 install -r requirements.txt`.
+3. Export the environment variable OPENAI_API_KEY and put ChatGPT API key inside with the following command: `export OPENAI_API_KEY=<content>`.
+4. Change the permissions on the generator file to be executable, with `chmod +x generator.py`.
+5. If you run only the generator without the agent, make sure that the sample metrics file is inside the agent directory.
 
 ## Execution
  In order to execute the generator, please run the following command: `python3 generator.py`.
