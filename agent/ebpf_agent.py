@@ -1,7 +1,8 @@
 from bcc import BPF
 from datetime import datetime
-import threading
+import requests
 import socket
+import threading
 
 # Get the hostname
 hostname = socket.gethostname()
