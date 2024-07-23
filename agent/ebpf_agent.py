@@ -1,33 +1,17 @@
 from bcc import BPF
-from time import sleep
-from os import environ as env
 from datetime import datetime
-import requests
+import threading
 import socket
-import time
-import json
-import csv
 
 # Get the hostname
 hostname = socket.gethostname()
 
 # Load eBPF program
-b = BPF(src_file="fork_bomb.c")
-b.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
-b.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
-b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
+b = BPF(src_file="ebpf_agent.c")
 
-print("Tracing forks... Hit Ctrl-C to end.")
-
-# Print the output
-while True:
-    try:
-        sleep(1)
-    except KeyboardInterrupt:
-        exit()
-    # Read trace pipe
+def handle_fork_trace(b, hostname):
     while True:
-        (task, pid, cpu, flags, ts, msg) = b.trace_fields(nonblocking=True)
+        task, pid, cpu, flags, ts, msg = b.trace_fields(nonblocking=True)
         if msg:
             # Parse the message
             parts = msg.split()
@@ -41,11 +25,49 @@ while True:
                 log_entry = f"{log_pid},{log_tgid},{log_count}"
                 log_obj = {
                         "Time": f"{timestamp}",
-                        "Type": "system call",
-                        "Host": f"{hostname}",
+                        "Type": "fork bomb",
+                        "Target": f"{hostname}",
                         "Info": f"{log_entry}"
                         }
-                print(log_entry.strip())
-                requests.post("http://10.10.248.155:5000/data", json=log_obj)
-        else:
+                print(log_obj)
+                # requests.post("http://10.10.248.155:5000/data", json=log_obj)
+
+def handle_file_deletion(cpu, data, size):
+    event = b["events"].event(data)
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    log_entry = f"{event.pid},{event.uid},{event.comm}"
+    log_obj = {
+            "Time": f"{timestamp}",
+            "Type": f"file deletion",
+            "Target": f"{event.filename}",
+            "Info": f"{log_entry}"
+            }
+    print(log_obj)
+    # requests.post("http://10.10.248.155:5000/data", json=log_obj)
+
+
+def main():
+    # Attach kprobes
+    b.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
+    b.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
+    b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
+
+    # Open perf buffer for file deletion events
+    b["events"].open_perf_buffer(handle_file_deletion)
+
+    # Start a thread for fork trace handling
+    fork_trace_thread = threading.Thread(target=handle_fork_trace, args=(b, hostname))
+    fork_trace_thread.daemon = True
+    fork_trace_thread.start()
+
+    print("Tracing forks and file deletions... Ctrl-C to end.")
+
+    # Poll for file deletion events
+    while True:
+        try:
+            b.perf_buffer_poll()
+        except KeyboardInterrupt:
             break
+
+if __name__ == "__main__":
+    main()
