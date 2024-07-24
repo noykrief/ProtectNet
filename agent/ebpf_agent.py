@@ -8,7 +8,8 @@ import threading
 hostname = socket.gethostname()
 
 # Load eBPF program
-b = BPF(src_file="ebpf_agent.c")
+b_fork = BPF(src_file="fork.c")
+b_file_deletion = BPF(src_file="file_deletion.c")
 
 def handle_fork_trace(b, hostname):
     while True:
@@ -34,7 +35,7 @@ def handle_fork_trace(b, hostname):
                 # requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_file_deletion(cpu, data, size):
-    event = b["events"].event(data)
+    event = b_file_deletion["events"].event(data)
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
     log_entry = f"{event.pid},{event.uid},{event.comm}"
     log_obj = {
@@ -49,15 +50,15 @@ def handle_file_deletion(cpu, data, size):
 
 def main():
     # Attach kprobes
-    b.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
-    b.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
-    b.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
+    b_fork.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
+    b_fork.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
+    b_fork.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
     # Open perf buffer for file deletion events
-    b["events"].open_perf_buffer(handle_file_deletion)
+    b_file_deletion["events"].open_perf_buffer(handle_file_deletion)
 
     # Start a thread for fork trace handling
-    fork_trace_thread = threading.Thread(target=handle_fork_trace, args=(b, hostname))
+    fork_trace_thread = threading.Thread(target=handle_fork_trace, args=(b_fork, hostname))
     fork_trace_thread.daemon = True
     fork_trace_thread.start()
 
@@ -66,7 +67,7 @@ def main():
     # Poll for file deletion events
     while True:
         try:
-            b.perf_buffer_poll()
+            b_file_deletion.perf_buffer_poll()
         except KeyboardInterrupt:
             break
 
