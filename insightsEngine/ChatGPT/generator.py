@@ -42,7 +42,7 @@ def generate_insights(ebpf_info):
       {
         "role": "system",
         "content": "For each list of JSONs: \n1. Print logs with suspicious methods indicating potential security threats."
-        "\n2. Use this header:\nTime: 'timestamp',\nLog Type: 'log_type',\nHosts: 'hostnames',"
+        "\n2. Use this header:\nTime: 'timestamp',\nLog Type: 'log_type',\nTargets: 'targets',"
         "\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
         "\nLead: 'lead',\nInfo: 'information',\nAction Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Lead: Explain the gathered logs.\n- Info: Detailed threat information."
@@ -56,13 +56,13 @@ def generate_insights(ebpf_info):
           {
             "Time": "2024-04-15T12:50:00Z",
             "Log Type": "System Call",
-            "Host": "192.168.1.105",
+            "Target": "192.168.1.105",
             "Info": "Failed SSH connection from PID 1234"
           },
           {
             "Time": "2024-04-15T12:50:26Z",
             "Log Type": "System Call",
-            "Host": "192.168.1.105",
+            "Target": "192.168.1.105",
             "Info": "Failed SSH connection from PID 1234"
           }
         ])
@@ -73,7 +73,7 @@ def generate_insights(ebpf_info):
           {
             "Time": "2024-04-15T12:51:00Z",
             "Log Type": "System Call",
-            "Hosts": ["192.168.1.105"],
+            "Targets": ["192.168.1.105"],
             "Severity": "MEDIUM",
             "Lead": "Multiple login attempts detected from IP 192.168.1.105",
             "Info": "The host is vulnerable to DOS attack / port scan on port 22",
@@ -88,7 +88,7 @@ def generate_insights(ebpf_info):
           {
             "Time": "2024-04-15T12:47:15Z",
             "Log Type": "System Call",
-            "Host": "192.168.1.102",
+            "Target": "192.168.1.102",
             "Info": "502, open, /etc/shadow"
           }
         ])
@@ -99,7 +99,7 @@ def generate_insights(ebpf_info):
           {
             "Time": "2024-04-15T12:47:15Z",
             "Log Type": "System Call",
-            "Hosts": ["192.168.1.102"],
+            "Targets": ["192.168.1.102"],
             "Severity": "NEUTRAL",
             "Lead": "PID 502 attempted to open a sensitive file",
             "Info": "Sensitive data could be exposed",
