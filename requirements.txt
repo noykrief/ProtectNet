@@ -1,0 +1,8 @@
+python-dotenv==1.0.1
+colorama==0.4.6
+python-logging-loki==0.3.1
+openai==1.35.7
+flask==3.0.3
+pymongo==4.8.0
+bcc==0.1.10
+numba==0.60.0
