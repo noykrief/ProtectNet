@@ -1,6 +1,7 @@
 import os
 import csv
 import ast
+import json
 import logging
 import logging_loki
 from pymongo import MongoClient
@@ -139,6 +140,7 @@ def main():
     for syscall in potential_threats:
      
       severity = syscall["Severity"].lower()
+      syscall = json.dumps(syscall)
       match severity:
           case "neutral":
               logger.info(syscall)
