@@ -72,12 +72,12 @@ def generate_insights(ebpf_info):
         "content": ",".join(str(element) for element in [
           {
             "Time": "2024-04-15T12:51:00Z",
-            "Log Type": "System Call",
+            "Log_Type": "System Call",
             "Targets": ["192.168.1.105"],
             "Severity": "MEDIUM",
             "Lead": "Multiple login attempts detected from IP 192.168.1.105",
             "Info": "The host is vulnerable to DOS attack / port scan on port 22",
-            "Action Items": ["Consider investigation the source IP and applying IP-based blocking or rate limiting.\n"
+            "Action_Items": ["Consider investigation the source IP and applying IP-based blocking or rate limiting.\n"
             "To block this IP using iptables, use the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`"]
           }
         ])
@@ -98,12 +98,12 @@ def generate_insights(ebpf_info):
         "content": ",".join(str(element) for element in [
           {
             "Time": "2024-04-15T12:47:15Z",
-            "Log Type": "System Call",
+            "Log_Type": "System Call",
             "Targets": ["192.168.1.102"],
             "Severity": "NEUTRAL",
             "Lead": "PID 502 attempted to open a sensitive file",
             "Info": "Sensitive data could be exposed",
-            "Action Items": ["Manage ACL on the sensitive file", "Kill suspicious PID 502 using `sudo kill -p PID`"]
+            "Action_Items": ["Manage ACL on the sensitive file", "Kill suspicious PID 502 using `sudo kill -p PID`"]
           }
         ])
       },
@@ -120,7 +120,6 @@ def generate_insights(ebpf_info):
 # Main function in order to be able to send data without the API from the agent.
 def main():
   system_calls = []
-  severity_field = "Potential Severity"
 
 # Append events stored on MongoDB
   cursor = collection.find({})
@@ -136,12 +135,8 @@ def main():
 
     print("Printing insights results...")
     for syscall in potential_threats:
-      if 'Severity' in syscall:
-          severity_field = 'Severity'
-      elif 'Potential Severity' in syscall:
-          severity_field = 'Potential Severity'
      
-      severity = syscall[severity_field].lower()
+      severity = syscall["Severity"].lower()
       match severity:
           case "neutral":
               logger.info(syscall)
