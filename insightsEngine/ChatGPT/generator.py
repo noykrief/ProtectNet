@@ -126,7 +126,6 @@ def main():
   minute_timedelta = datetime.now() - timedelta(minutes=1)
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
-    print(document)
     system_calls.append(document)
 
   if system_calls:
