@@ -43,11 +43,11 @@ def generate_insights(ebpf_info):
       {
         "role": "system",
         "content": "For each list of JSONs: \n1. Print logs with suspicious methods indicating potential security threats."
-        "\n2. Use this header:\nTime: 'timestamp',\nLog Type: 'log_type',\nTargets: 'targets',"
+        "\n2. Use this header:\nTime: 'timestamp',\nLog_Type: 'log_type',\nTargets: 'targets',"
         "\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
-        "\nLead: 'lead',\nInfo: 'information',\nAction Items: 'action_items'.\n- Severity: Based on inferred threat level."
+        "\nLead: 'lead',\nInfo: 'information',\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Lead: Explain the gathered logs.\n- Info: Detailed threat information."
-        "\n- Action Items: suggest immediate actions to address the potential threat."
+        "\n- Action_Items: suggest immediate actions to address the potential threat."
         "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
       },
