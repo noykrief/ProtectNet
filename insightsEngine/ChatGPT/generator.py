@@ -4,6 +4,7 @@ import ast
 import logging
 import logging_loki
 from pymongo import MongoClient
+from datetime import datetime, timedelta
 
 from openai import OpenAI
 from colorama import Fore
@@ -122,7 +123,8 @@ def main():
   system_calls = []
 
 # Append events stored on MongoDB
-  cursor = collection.find({})
+  minute_timedelta = datetime.now() - timedelta(minutes=1)
+  cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
     system_calls.append(document)
 
