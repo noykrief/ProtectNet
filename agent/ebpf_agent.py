@@ -105,7 +105,7 @@ def main():
     file_open_thread.daemon = True
     file_open_thread.start()
 
-    print("Tracing forks, file deletions, and file open... Ctrl-C to end.")
+    print("Tracing forks, file deletions, and opening file events... Ctrl-C to end.")
 
     # Keep the main thread alive
     try:
