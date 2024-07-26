@@ -32,7 +32,7 @@ def handle_fork_trace(b, hostname):
                         "Target": f"{hostname}",
                         "Info": f"{log_entry}"
                         }
-    #            requests.post("http://10.10.248.155:5000/data", json=log_obj)
+                requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_file_deletion(cpu, data, size):
     event = b_file_deletion["events"].event(data)
@@ -44,7 +44,7 @@ def handle_file_deletion(cpu, data, size):
             "Target": f"{event.filename}",
             "Info": f"{log_entry}"
             }
-    #requests.post("http://10.10.248.155:5000/data", json=log_obj)
+    requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
@@ -56,8 +56,7 @@ def handle_file_creation(cpu, data, size):
             "Target": f"{event.filename}",
             "Info": f"{log_entry}"
             }
-    print(log_obj)
-    #requests.post("http://10.10.248.155:5000/data", json=log_obj)
+    requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def monitor_fork_trace():
     b_fork.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
