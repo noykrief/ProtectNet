@@ -7,9 +7,10 @@ import threading
 # Get the hostname
 hostname = socket.gethostname()
 
-# Load eBPF program
+# Load eBPF programs
 b_fork = BPF(src_file="fork.c")
 b_file_deletion = BPF(src_file="file_deletion.c")
+b_file_creation = BPF(src_file="file_creation.c")
 
 def handle_fork_trace(b, hostname):
     while True:
@@ -45,29 +46,73 @@ def handle_file_deletion(cpu, data, size):
             }
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
+def handle_file_creation(cpu, data, size):
+    event = b_file_creation["events"].event(data)
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    log_entry = f"{event.pid},{event.uid},{event.comm}"
+    log_obj = {
+            "Time": f"{timestamp}",
+            "Type": f"file creation",
+            "Target": f"{event.filename}",
+            "Info": f"{log_entry}"
+            }
+    requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
-def main():
-    # Attach kprobes
+def monitor_fork_trace():
     b_fork.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
     b_fork.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
     b_fork.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
-    # Open perf buffer for file deletion events
+    while True:
+        try:
+            handle_fork_trace(b_fork, hostname)
+        except KeyboardInterrupt:
+            break
+
+def monitor_file_deletion():
     b_file_deletion["events"].open_perf_buffer(handle_file_deletion)
 
-    # Start a thread for fork trace handling
-    fork_trace_thread = threading.Thread(target=handle_fork_trace, args=(b_fork, hostname))
-    fork_trace_thread.daemon = True
-    fork_trace_thread.start()
-
-    print("Tracing forks and file deletions... Ctrl-C to end.")
-
-    # Poll for file deletion events
     while True:
         try:
             b_file_deletion.perf_buffer_poll()
         except KeyboardInterrupt:
             break
+
+def monitor_file_creation():
+    b_file_creation.attach_kprobe(event="do_filp_open", fn_name="trace_do_filp_open")
+
+    b_file_creation["events"].open_perf_buffer(handle_file_creation)
+
+    while True:
+        try:
+            b_file_creation.perf_buffer_poll()
+        except KeyboardInterrupt:
+            break
+
+def main():
+    # Start a thread for fork trace handling
+    fork_trace_thread = threading.Thread(target=monitor_fork_trace)
+    fork_trace_thread.daemon = True
+    fork_trace_thread.start()
+
+    # Start a thread for file deletion events
+    file_deletion_thread = threading.Thread(target=monitor_file_deletion)
+    file_deletion_thread.daemon = True
+    file_deletion_thread.start()
+
+    # Start a thread for file open events
+    file_creation_thread = threading.Thread(target=monitor_file_creation)
+    file_creation_thread.daemon = True
+    file_creation_thread.start()
+
+    print("Tracing forks, file deletions, and file creation events... Ctrl-C to end.")
+
+    # Keep the main thread alive
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("Exiting...")
 
 if __name__ == "__main__":
     main()
