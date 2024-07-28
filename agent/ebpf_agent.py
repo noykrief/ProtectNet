@@ -11,6 +11,7 @@ hostname = socket.gethostname()
 b_fork = BPF(src_file="fork.c")
 b_file_deletion = BPF(src_file="file_deletion.c")
 b_file_creation = BPF(src_file="file_creation.c")
+b_port_scan = BPF(src_file="port_scan.c")
 
 def handle_fork_trace(b, hostname):
     while True:
@@ -89,6 +90,16 @@ def monitor_file_creation():
         except KeyboardInterrupt:
             break
 
+def monitor_port_scan():
+    fn = b_port_scan.load_func("packet_filter", BPF.SOCKET_FILTER)
+    BPF.attach_raw_socket(fn, "ens160")
+
+    while True:
+        try:
+            b_port_scan.trace_print()
+        except KeyboardInterrupt:
+            break
+
 def main():
     # Start a thread for fork trace handling
     fork_trace_thread = threading.Thread(target=monitor_fork_trace)
@@ -105,7 +116,12 @@ def main():
     file_creation_thread.daemon = True
     file_creation_thread.start()
 
-    print("Tracing forks, file deletions, and file creation events... Ctrl-C to end.")
+    # Start a thread for port scan events
+    port_scan_thread = threading.Thread(target=monitor_port_scan)
+    port_scan_thread.daemon = True
+    port_scan_thread.start()
+
+    print("Tracing forks, file deletions, files creations and port scans events... Ctrl-C to end.")
 
     # Keep the main thread alive
     try:
