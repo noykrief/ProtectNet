@@ -17,12 +17,12 @@ class Event(ctypes.Structure):
 hostname = socket.gethostname()
 
 # Load eBPF programs
-b_fork = BPF(src_file="fork.c")
+b_fork_bomb = BPF(src_file="fork_bomb.c")
 b_file_deletion = BPF(src_file="file_deletion.c")
 b_file_creation = BPF(src_file="file_creation.c")
 b_port_scan = BPF(src_file="port_scan.c")
 
-def handle_fork_trace(b, hostname):
+def handle_fork_bomb_trace(b, hostname):
     while True:
         task, pid, cpu, flags, ts, msg = b.trace_fields(nonblocking=True)
         if msg:
@@ -80,14 +80,14 @@ def handle_port_scan(cpu, data, size):
             }
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
-def monitor_fork_trace():
-    b_fork.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
-    b_fork.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
-    b_fork.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
+def monitor_fork_bomb_trace():
+    b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
+    b_fork_bomb.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
+    b_fork_bomb.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
     while True:
         try:
-            handle_fork_trace(b_fork, hostname)
+            handle_fork_bomb_trace(b_fork_bomb, hostname)
         except KeyboardInterrupt:
             break
 
@@ -124,9 +124,9 @@ def monitor_port_scan():
 
 def main():
     # Start a thread for fork trace handling
-    fork_trace_thread = threading.Thread(target=monitor_fork_trace)
-    fork_trace_thread.daemon = True
-    fork_trace_thread.start()
+    fork_bomb_trace_thread = threading.Thread(target=monitor_fork_bomb_trace)
+    fork_bomb_trace_thread.daemon = True
+    fork_bomb_trace_thread.start()
 
     # Start a thread for file deletion events
     file_deletion_thread = threading.Thread(target=monitor_file_deletion)
@@ -143,7 +143,7 @@ def main():
     port_scan_thread.daemon = True
     port_scan_thread.start()
 
-    print("Tracing forks, file deletions, files creations and port scans events... Ctrl-C to end.")
+    print("Tracing fork bombs, file deletions, files creations and port scans events... Ctrl-C to end.")
 
     # Keep the main thread alive
     try:
