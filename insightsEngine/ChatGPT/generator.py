@@ -123,7 +123,7 @@ def main():
   system_calls = []
 
 # Append events stored on MongoDB
-  minute_timedelta = datetime.now() - timedelta(minutes=1)
+  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
     system_calls.append(document)
