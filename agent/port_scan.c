@@ -4,14 +4,19 @@
 #include <uapi/linux/tcp.h>
 #include <linux/in.h>
 
-// Define a key for the hash map
 struct key_t {
     __be32 src_ip;
     __be16 dst_port;
 };
 
-// Define the hash map
+struct event_t {
+    __be32 src_ip;
+    __be16 dst_port;
+    u64 count;
+};
+
 BPF_HASH(packet_count, struct key_t, u64);
+BPF_PERF_OUTPUT(events);
 
 int packet_filter(struct __sk_buff *skb) {
     struct ethhdr eth;
@@ -58,7 +63,12 @@ int packet_filter(struct __sk_buff *skb) {
 
     value = packet_count.lookup(&key);
     if (value && *value > 10) {
-        bpf_trace_printk("Port scanning detected: src_ip=%d, count=%llu", key.src_ip, *value);
+        struct event_t event = {
+            .src_ip = key.src_ip,
+            .dst_port = key.dst_port,
+            .count = *value,
+        };
+        events.perf_submit(skb, &event, sizeof(event));
     }
 
     return 0;
