@@ -3,16 +3,26 @@ from datetime import datetime
 import requests
 import socket
 import threading
+import ctypes
+
+# Define the event data structure in ctypes
+class Event(ctypes.Structure):
+    _fields_ = [
+        ("src_ip", ctypes.c_uint32),
+        ("dst_port", ctypes.c_uint16),
+        ("count", ctypes.c_uint64),
+    ]
 
 # Get the hostname
 hostname = socket.gethostname()
 
 # Load eBPF programs
-b_fork = BPF(src_file="fork.c")
+b_fork_bomb = BPF(src_file="fork_bomb.c")
 b_file_deletion = BPF(src_file="file_deletion.c")
 b_file_creation = BPF(src_file="file_creation.c")
+b_port_scan = BPF(src_file="port_scan.c")
 
-def handle_fork_trace(b, hostname):
+def handle_fork_bomb_trace(b, hostname):
     while True:
         task, pid, cpu, flags, ts, msg = b.trace_fields(nonblocking=True)
         if msg:
@@ -58,14 +68,26 @@ def handle_file_creation(cpu, data, size):
             }
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
-def monitor_fork_trace():
-    b_fork.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
-    b_fork.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
-    b_fork.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
+def handle_port_scan(cpu, data, size):
+    event = ctypes.cast(data, ctypes.POINTER(Event)).contents
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    log_entry = f"{socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))},{event.count}"
+    log_obj = {
+            "Time": f"{timestamp}",
+            "Type": f"port scan",
+            "Target": f"{hostname}",
+            "Info": f"{log_entry}"
+            }
+    print(log_obj)
+
+def monitor_fork_bomb_trace():
+    b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
+    b_fork_bomb.attach_kprobe(event="__x64_sys_fork", fn_name="trace_fork")
+    b_fork_bomb.attach_kprobe(event="__x64_sys_vfork", fn_name="trace_fork")
 
     while True:
         try:
-            handle_fork_trace(b_fork, hostname)
+            handle_fork_bomb_trace(b_fork_bomb, hostname)
         except KeyboardInterrupt:
             break
 
@@ -89,11 +111,22 @@ def monitor_file_creation():
         except KeyboardInterrupt:
             break
 
+def monitor_port_scan():
+    b_port_scan["events"].open_perf_buffer(handle_port_scan)
+    fn = b_port_scan.load_func("packet_filter", BPF.SOCKET_FILTER)
+    BPF.attach_raw_socket(fn, "ens160")
+
+    while True:
+        try:
+            b_port_scan.perf_buffer_poll()
+        except KeyboardInterrupt:
+            break
+
 def main():
     # Start a thread for fork trace handling
-    fork_trace_thread = threading.Thread(target=monitor_fork_trace)
-    fork_trace_thread.daemon = True
-    fork_trace_thread.start()
+    fork_bomb_trace_thread = threading.Thread(target=monitor_fork_bomb_trace)
+    fork_bomb_trace_thread.daemon = True
+    fork_bomb_trace_thread.start()
 
     # Start a thread for file deletion events
     file_deletion_thread = threading.Thread(target=monitor_file_deletion)
@@ -105,7 +138,12 @@ def main():
     file_creation_thread.daemon = True
     file_creation_thread.start()
 
-    print("Tracing forks, file deletions, and file creation events... Ctrl-C to end.")
+    # Start a thread for port scan events
+    port_scan_thread = threading.Thread(target=monitor_port_scan)
+    port_scan_thread.daemon = True
+    port_scan_thread.start()
+
+    print("Tracing fork bombs, file deletions, files creations and port scans events... Ctrl-C to end.")
 
     # Keep the main thread alive
     try:
