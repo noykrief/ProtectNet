@@ -64,7 +64,7 @@ int packet_filter(struct __sk_buff *skb) {
     value = packet_count.lookup(&key);
     if (value && *value > 10) {
         struct event_t event = {
-            .src_ip = key.src_ip,
+            .src_ip = ip.daddr,
             .dst_port = key.dst_port,
             .count = *value,
         };

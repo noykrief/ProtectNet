@@ -71,14 +71,14 @@ def handle_file_creation(cpu, data, size):
 def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
-    log_entry = f"{socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'big'))},{event.dst_port},{event.count}"
+    log_entry = f"{socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))},{event.count}"
     log_obj = {
             "Time": f"{timestamp}",
             "Type": f"port scan",
             "Target": f"{hostname}",
             "Info": f"{log_entry}"
             }
-    requests.post("http://10.10.248.155:5000/data", json=log_obj)
+    print(log_obj)
 
 def monitor_fork_bomb_trace():
     b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
