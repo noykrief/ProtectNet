@@ -1,6 +1,5 @@
 from bcc import BPF
 from datetime import datetime
-import json
 import requests
 import socket
 import threading
