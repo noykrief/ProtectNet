@@ -42,6 +42,7 @@ def handle_fork_bomb_trace(b, hostname):
                         "Target": f"{hostname}",
                         "Info": f"{log_entry}"
                         }
+                print(log_obj)
                 requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_file_deletion(cpu, data, size):
@@ -54,6 +55,7 @@ def handle_file_deletion(cpu, data, size):
             "Target": f"{event.filename}",
             "Info": f"{log_entry}"
             }
+    print(log_obj)
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_file_creation(cpu, data, size):
@@ -66,6 +68,7 @@ def handle_file_creation(cpu, data, size):
             "Target": f"{event.filename}",
             "Info": f"{log_entry}"
             }
+    print(log_obj)
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_port_scan(cpu, data, size):
