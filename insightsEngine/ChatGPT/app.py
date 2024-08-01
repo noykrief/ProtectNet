@@ -34,6 +34,7 @@ def test_event():
             query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
 
             result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", data=query)
+            print(result.content)
             return jsonify({"message": "Loki data deleted successfully"}), 201
 
     except Exception as e:
