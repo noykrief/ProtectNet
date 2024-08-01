@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify
+from insightsEngine.ChatGPT.generator import test_insight
 from pymongo import MongoClient
+
+import requests
 
 app = Flask(__name__)
 
@@ -15,6 +18,24 @@ def receive_data():
         result = collection.insert_one(json_data)
 
         return jsonify({"message": "Data inserted successfully", "id": str(result.inserted_id)}), 201
+
+    except Exception as e:
+        return jsonify({"message": "An error occurred", "error": str(e)}), 500
+
+@app.route('/test', methods=['GET'])
+def test_event():
+    try:
+        insight_info = request.get_json()
+        log_time = insight_info['time']
+        log_type = insight_info['log_type']
+        target = insight_info['target']
+        
+        if (test_insight(log_type, target)):
+            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+            query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
+
+            requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, data=query)
+            return jsonify({"message": "Loki data deleted successfully"}), 201
 
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500

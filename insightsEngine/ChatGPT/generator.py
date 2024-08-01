@@ -119,6 +119,21 @@ def generate_insights(ebpf_info):
   return (completion.choices[0].message.content)
   
 
+def test_insight(log_type, target):
+  system_calls = []
+
+  # Append events stored on MongoDB
+  timedelta = (datetime.now() - timedelta(seconnds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+  cursor = collection.find({ "Time": { "$gt": f"{timedelta}" } })
+  for document in cursor:
+    system_calls.append(document)
+
+  if system_calls:
+     for syscall in system_calls:
+        if log_type == syscall['Type'] and target == syscall['Target']:
+           return False
+  return True
+
 # Main function in order to be able to send data without the API from the agent.
 def main():
   system_calls = []
