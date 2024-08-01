@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from insightsEngine.ChatGPT.generator import test_insight
+from generator import test_insight
 from pymongo import MongoClient
 
 import requests
