@@ -3,6 +3,7 @@ from insightsEngine.ChatGPT.generator import test_insight
 from pymongo import MongoClient
 
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -31,10 +32,10 @@ def test_event():
         target = insight_info['target']
         
         if (test_insight(log_type, target)):
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+            headers = {'Content-Type': 'application/json'}
             query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
 
-            requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, data=query)
+            requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, data=json.dumps(query))
             return jsonify({"message": "Loki data deleted successfully"}), 201
 
     except Exception as e:
