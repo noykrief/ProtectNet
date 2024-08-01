@@ -26,10 +26,9 @@ def receive_data():
 @app.route('/test', methods=['GET'])
 def test_event():
     try:
-        insight_info = request.get_json()
-        log_time = insight_info['time']
-        log_type = insight_info['log_type']
-        target = insight_info['target']
+        log_time = request.args.get('time')
+        log_type = request.args.get('log_type')
+        target = request.args.get('target')
         
         if (test_insight(log_type, target)):
             query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
