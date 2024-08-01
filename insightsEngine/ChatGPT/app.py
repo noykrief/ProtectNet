@@ -35,7 +35,7 @@ def test_event():
 
             result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", data=query)
             print(result)
-            return jsonify({"message": "Loki data deleted successfully", "result": json.loads(result)}), 201
+            return jsonify({"message": "Loki data deleted successfully", "result": json.loads(str(result))}), 201
 
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
