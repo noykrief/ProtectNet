@@ -33,8 +33,8 @@ def test_event():
         if (test_insight(log_type, target)):
             query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
 
-            requests.post("http://10.10.248.155:3100/loki/api/v1/delete", data=query)
-            return jsonify({"message": "Loki data deleted successfully"}), 201
+            result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", data=query)
+            return jsonify({"message": "Loki data deleted successfully", "result": result}), 201
 
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
