@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from generator import test_insight
 from pymongo import MongoClient
+from datetime import datetime, timedelta, timezone
 
 import requests
 import json
@@ -29,21 +30,18 @@ def test_event():
         log_time = request.args.get('time')
         log_type = request.args.get('log_type')
         target = request.args.get('target')
-
-        print(log_time, log_type, target)
         
         if (test_insight(log_type, target)):
 
+            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
             params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
-                'start': log_time,
-                'end': log_time
+                'start': utc_log_time - timedelta(seconds=30),
+                'end': utc_log_time
             }
-            print(params['query'])
-            # query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+
+            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
             result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             print(result.content)
