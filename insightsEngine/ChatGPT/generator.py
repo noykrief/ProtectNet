@@ -52,13 +52,13 @@ def generate_insights(ebpf_info):
         "role": "user",
         "content": ",".join(str(element) for element in [
           {
-            "Time": "2024-04-15T12:50:00Z",
+            "Time": "2024-04-15T12:50:00",
             "Log Type": "System Call",
             "Target": "192.168.1.105",
             "Info": "Failed SSH connection from PID 1234"
           },
           {
-            "Time": "2024-04-15T12:50:26Z",
+            "Time": "2024-04-15T12:50:26",
             "Log Type": "System Call",
             "Target": "192.168.1.105",
             "Info": "Failed SSH connection from PID 1234"
@@ -69,7 +69,7 @@ def generate_insights(ebpf_info):
         "role": "assistant",
         "content": ",".join(str(element) for element in [
           {
-            "Time": "2024-04-15T12:51:00Z",
+            "Time": "2024-04-15T12:51:00",
             "Log_Type": "System Call",
             "Targets": ["192.168.1.105"],
             "Severity": "MEDIUM",
@@ -84,7 +84,7 @@ def generate_insights(ebpf_info):
         "role": "user",
         "content": ",".join(str(element) for element in [
           {
-            "Time": "2024-04-15T12:47:15Z",
+            "Time": "2024-04-15T12:47:15",
             "Log Type": "System Call",
             "Target": "192.168.1.102",
             "Info": "502, open, /etc/shadow"
@@ -95,7 +95,7 @@ def generate_insights(ebpf_info):
         "role": "assistant",
         "content": ",".join(str(element) for element in [
           {
-            "Time": "2024-04-15T12:47:15Z",
+            "Time": "2024-04-15T12:47:15",
             "Log_Type": "System Call",
             "Targets": ["192.168.1.102"],
             "Severity": "NEUTRAL",
@@ -131,7 +131,7 @@ def main():
   system_calls = []
 
 # Append events stored on MongoDB
-  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
     system_calls.append(document)
