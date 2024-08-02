@@ -33,14 +33,15 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ")
-            start_time = log_time - timedelta(seconds=30)
+            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            start_time = (log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
+            end_time = log_time.isoformat().replace("+00:00", "Z")
 
-            print(start_time, log_time)
+            print(start_time, end_time)
             params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
                 'start': start_time,
-                'end': log_time
+                'end': end_time
             }
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
