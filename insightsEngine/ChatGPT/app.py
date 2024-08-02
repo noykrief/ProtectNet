@@ -34,9 +34,10 @@ def test_event():
         if (test_insight(log_type, target)):
 
             log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ")
-            start_time = time.mktime((log_time - timedelta(seconds=30)).timetuple())
-            end_time = time.mktime(log_time.timetuple())
+            start_time = (log_time - timedelta(seconds=30)).timestamp()
+            end_time = log_time.timestamp()
 
+            print(start_time, end_time)
             params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
                 'start': start_time,
