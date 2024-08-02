@@ -33,11 +33,11 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).isoformat()
 
             params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
-                'start': utc_log_time - timedelta(seconds=30),
+                'start': utc_log_time,
                 'end': utc_log_time
             }
 
