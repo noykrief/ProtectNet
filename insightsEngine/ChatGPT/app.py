@@ -32,8 +32,7 @@ def test_event():
         
         if (test_insight(log_type, target)):
             query = {
-                'selector': '{logger="LokiLogger"}',
-                'query': f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
+                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
             }
             # query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
 
