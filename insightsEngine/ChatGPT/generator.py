@@ -1,6 +1,3 @@
-import os
-import csv
-import ast
 import json
 import logging
 import logging_loki
@@ -8,7 +5,6 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 
 from openai import OpenAI
-from colorama import Fore
 
 # Setup Loki configurations in order to send logs        
 logging_loki.emitter.LokiEmitter.level_tag = "level"
@@ -116,7 +112,7 @@ def generate_insights(ebpf_info):
     ]
   )
 
-  return [ast.literal_eval(completion.choices[0].message.content)]
+  return [json.loads(completion.choices[0].message.content)]
   
 
 def test_insight(log_type, target):
@@ -129,12 +125,6 @@ def test_insight(log_type, target):
     print(document)
     if log_type == document['Type'] and target == document['Target']:
        return False
-  #   system_calls.append(document)
-
-  # if system_calls:
-  #    for syscall in system_calls:
-  #       if log_type == syscall['Type'] and target == syscall['Target']:
-  #          return False
   return True
 
 # Main function in order to be able to send data without the API from the agent.
