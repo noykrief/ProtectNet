@@ -119,7 +119,7 @@ def test_insight(log_type, target):
   system_calls = []
 
   # Append events stored on MongoDB
-  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
     if log_type == document['Type'] and target == document['Target']:
