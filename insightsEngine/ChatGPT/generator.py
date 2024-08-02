@@ -149,9 +149,6 @@ def main():
 
     potential_threats = generate_insights(system_calls)
 
-    print(type(potential_threats))
-    # potential_threats = [ast.literal_eval(potential_threats)]
-
     print("Printing insights results...")
     for syscall in potential_threats:
      
