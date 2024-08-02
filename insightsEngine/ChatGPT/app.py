@@ -33,7 +33,7 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
             print(log_time)
             start_time = (log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
             end_time = log_time.isoformat().replace("+00:00", "Z")
