@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta, timezone
 
 import requests
-import json
+import time
 
 app = Flask(__name__)
 
@@ -33,9 +33,9 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-            start_time = int((utc_log_time - timedelta(seconds=30)).timestamp() * 1000)
-            end_time = int(utc_log_time.timestamp() * 1000)
+            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ")
+            start_time = time.mktime((log_time - timedelta(seconds=30)).timetuple())
+            end_time = time.mktime(log_time.timetuple())
 
             params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
