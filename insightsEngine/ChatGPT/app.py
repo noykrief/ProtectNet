@@ -33,7 +33,7 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            log_time =  datetime.strftime(log_time, "%Y-%m-%dT%H:%M:%SZ")
+            log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%SZ")
             start_time = log_time - timedelta(seconds=30)
 
             print(start_time, log_time)
