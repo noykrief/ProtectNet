@@ -116,7 +116,7 @@ def generate_insights(ebpf_info):
     ]
   )
 
-  return (completion.choices[0].message.content)
+  return [ast.literal_eval(completion.choices[0].message.content)]
   
 
 def test_insight(log_type, target):
