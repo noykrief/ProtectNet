@@ -33,7 +33,7 @@ def handle_fork_bomb_trace(b, hostname):
                 log_tgid = int(parts[1])
                 log_count = int(parts[2])
                 # Get current time
-                timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+                timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
                 # Log the metrics
                 log_entry = f"{log_pid},{log_tgid},{log_count}"
                 log_obj = {
@@ -47,7 +47,7 @@ def handle_fork_bomb_trace(b, hostname):
 
 def handle_file_deletion(cpu, data, size):
     event = b_file_deletion["events"].event(data)
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     log_entry = f"{event.pid},{event.uid},{event.comm}"
     log_obj = {
             "Time": f"{timestamp}",
@@ -60,7 +60,7 @@ def handle_file_deletion(cpu, data, size):
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     log_entry = f"{event.pid},{event.uid},{event.comm}"
     log_obj = {
             "Time": f"{timestamp}",
@@ -73,7 +73,7 @@ def handle_file_creation(cpu, data, size):
 
 def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     log_entry = f"{socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))},{event.count}"
     log_obj = {
             "Time": f"{timestamp}",
