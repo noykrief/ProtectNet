@@ -122,7 +122,6 @@ def test_insight(log_type, target):
   minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
-    print(document)
     if log_type == document['Type'] and target == document['Target']:
        return False
   return True

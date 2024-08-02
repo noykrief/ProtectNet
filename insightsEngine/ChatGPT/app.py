@@ -34,17 +34,18 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            data = {
+            params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
                 'start': log_time,
                 'end': log_time
             }
+            print(params['query'])
             # query = '{logger="LokiLogger"}' + f"|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`"
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
 
-            result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, data=data)
+            result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             print(result.content)
             return jsonify({"message": "Loki data deleted successfully"}), 201
 
