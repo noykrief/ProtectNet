@@ -10,6 +10,9 @@ trap 'kill $(jobs -p); exit' SIGINT SIGTERM
 
 while true
 do
-	create_child_process
-	sleep 1
+	for i in $(seq 1 10);
+	do
+		create_child_process
+	done
+	sleep 2
 done

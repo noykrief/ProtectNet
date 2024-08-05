@@ -11,7 +11,7 @@ int trace_fork(struct pt_regs *ctx) {
     count = fork_count.lookup_or_init(&pid, &zero);
     (*count)++;
 
-    if (*count > 10) {
+    if (*count > 100) {
         bpf_trace_printk("%u %u %llu\n", pid, bpf_get_current_pid_tgid(), *count);
     }
 
