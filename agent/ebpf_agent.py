@@ -61,19 +61,21 @@ def handle_port_scan(cpu, data, size):
 
 def handle_login_attempt(cpu, data, size):
     event = b_login_attempt["events"].event(data)
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
-    username = pwd.getpwuid(event.uid).pw_name
-    log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH to {hostname} at {timestamp}"
-    send_metrics(log_entry)
+    if event.uid != 0:
+        timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        username = pwd.getpwuid(event.uid).pw_name
+        log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH to {hostname} at {timestamp}"
+        send_metrics(log_entry)
 
 def handle_sudo_command(cpu, data, size):
     event = b_sudo_command["events"].event(data)
     if event.uid != 0:
         timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         command = subprocess.run(f"ps -p {event.pid} -o args --no-headers", shell=True, capture_output=True, text=True).stdout.strip()
-        username = pwd.getpwuid(event.uid).pw_name
-        log_entry = f"User {username} with UID {event.uid} executed command '{command}' on {hostname} at {timestamp}"
-        send_metrics(log_entry)
+        if command and 'sudo' in command:
+            username = pwd.getpwuid(event.uid).pw_name
+            log_entry = f"User {username} with UID {event.uid} executed command '{command}' on {hostname} at {timestamp}"
+            send_metrics(log_entry)
 
 def monitor_fork_bomb_trace():
     b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
