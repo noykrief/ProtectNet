@@ -5,6 +5,7 @@ import socket
 import threading
 import ctypes
 import subprocess
+import pwd
 
 # Define the event data structure in ctypes
 class Event(ctypes.Structure):
@@ -47,7 +48,8 @@ def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
     filename = event.filename.decode('utf-8')
-    log_entry = f"User {event.uid} created file {filename} on {hostname} at {timestamp}"
+    username = pwd.getpwuid(event.uid).pw_name
+    log_entry = f"User {username} with UID {event.uid} created file {filename} on {hostname} at {timestamp}"
     send_metrics(log_entry)
 
 def handle_port_scan(cpu, data, size):
@@ -60,7 +62,8 @@ def handle_port_scan(cpu, data, size):
 def handle_login_attempt(cpu, data, size):
     event = b_login_attempt["events"].event(data)
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
-    log_entry = f"User {event.uid} successfully logged-in via SSH to {hostname} at {timestamp}"
+    username = pwd.getpwuid(event.uid).pw_name
+    log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH to {hostname} at {timestamp}"
     send_metrics(log_entry)
 
 def handle_sudo_command(cpu, data, size):
@@ -68,7 +71,8 @@ def handle_sudo_command(cpu, data, size):
     if event.uid != 0:
         timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         command = event.filename.decode('utf-8')
-        log_entry = f"User {event.uid} executed command {command} as sudo on {hostname} at {timestamp}"
+        username = pwd.getpwuid(event.uid).pw_name
+        log_entry = f"User {username} with UID {event.uid} executed command {command} as sudo on {hostname} at {timestamp}"
         send_metrics(log_entry)
 
 def monitor_fork_bomb_trace():
