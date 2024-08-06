@@ -26,8 +26,8 @@ b_login_attempt = BPF(src_file="login_attempt.c")
 b_sudo_command = BPF(src_file="sudo_command.c")
 
 def send_metrics(log_entry):
-    print(log_entry)
-    #requests.post("http://10.10.248.155:5000/data", json=log_obj)
+    #print(log_entry)
+    requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_fork_bomb_trace(b, hostname):
     while True:
