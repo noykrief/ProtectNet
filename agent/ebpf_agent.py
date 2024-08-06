@@ -70,9 +70,9 @@ def handle_sudo_command(cpu, data, size):
     event = b_sudo_command["events"].event(data)
     if event.uid != 0:
         timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
-        command = event.filename.decode('utf-8')
+        command = subprocess.run(f"ps -p {event.pid} -o args --no-headers", shell=True, capture_output=True, text=True).stdout.strip()
         username = pwd.getpwuid(event.uid).pw_name
-        log_entry = f"User {username} with UID {event.uid} executed command {command} as sudo on {hostname} at {timestamp}"
+        log_entry = f"User {username} with UID {event.uid} executed command '{command}' on {hostname} at {timestamp}"
         send_metrics(log_entry)
 
 def monitor_fork_bomb_trace():
