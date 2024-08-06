@@ -64,7 +64,8 @@ def handle_login_attempt(cpu, data, size):
     if event.uid != 0:
         timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         username = pwd.getpwuid(event.uid).pw_name
-        log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH to {hostname} at {timestamp}"
+        source_ip = subprocess.run(f"ss -tp | grep ssh | grep $(ps -o ppid= -p {event.pid}) | awk -F: '{{print $8}}' | sed 's/]//g'", shell=True, capture_output=True, text=True).stdout.strip()
+        log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH from {source_ip} to {hostname} at {timestamp}"
         send_metrics(log_entry)
 
 def handle_sudo_command(cpu, data, size):
