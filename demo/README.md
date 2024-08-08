@@ -44,25 +44,25 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
 
     ```bash
     sudo tee /usr/local/bin/fork_bomb.sh > /dev/null << 'EOF'
-#!/bin/bash
+    #!/bin/bash
 
-create_child_process() {
-    sleep 9999 &
-    child_pid=\$!
-    echo "Created child process with PID: \$child_pid"
-}
+    create_child_process() {
+        sleep 9999 &
+        child_pid=\$!
+        echo "Created child process with PID: \$child_pid"
+    }
 
-trap 'kill \$(jobs -p); exit' SIGINT SIGTERM
+    trap 'kill \$(jobs -p); exit' SIGINT SIGTERM
 
-while true
-do
-    for i in \$(seq 1 10);
+    while true
     do
-        create_child_process
+        for i in \$(seq 1 10);
+        do
+            create_child_process
+        done
+        sleep 2
     done
-    sleep 2
-done
-EOF
+    EOF
     ```
 
 1. **Make the Script Executable and Set Ownership**
@@ -87,21 +87,21 @@ EOF
 
     ```bash
     sudo tee /etc/systemd/system/fork.service > /dev/null << 'EOF'
-[Unit]
-Description=Malicious Fork Bomb Service
-After=network.target
+    [Unit]
+    Description=Malicious Fork Bomb Service
+    After=network.target
 
-[Service]
-ExecStart=/usr/local/bin/fork_bomb.sh
-ExecStop=/bin/kill -s SIGTERM \$MAINPID
-Restart=always
-User=demo
-KillMode=process
-Type=simple
+    [Service]
+    ExecStart=/usr/local/bin/fork_bomb.sh
+    ExecStop=/bin/kill -s SIGTERM \$MAINPID
+    Restart=always
+    User=demo
+    KillMode=process
+    Type=simple
 
-[Install]
-WantedBy=multi-user.target
-EOF
+    [Install]
+    WantedBy=multi-user.target
+    EOF
     ```
 
 1. **Reload systemd and Start the Fork Bomb Service**
