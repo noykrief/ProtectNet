@@ -178,7 +178,7 @@ def main():
                   "Action_Items": threat.get("Action_Items")
                 }
                 print(json.dumps(log_obj))
-                logger.info(json.dumps(log_obj))
+                logger.warn(json.dumps(log_obj))
                 break
     
 if __name__ == "__main__":
