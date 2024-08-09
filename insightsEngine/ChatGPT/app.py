@@ -58,7 +58,7 @@ def test_event():
             
             print(resolved)
 
-            logger.info(json.dumps(resolved))            
+            logger.warn(json.dumps(resolved))            
             # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             # print(result.content)
             return jsonify({"message": "Loki data marked as solved successfully"}), 201
