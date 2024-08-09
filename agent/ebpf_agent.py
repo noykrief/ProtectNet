@@ -70,15 +70,16 @@ def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
     source_ip = socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))
-    log_entry = f"Host {source_ip} scanned {event.count} ports"
-    log_obj = {
-        "Time": f"{timestamp}",
-        "Type": f"port scan",
-        "Target": f"{hostname}",
-        "Info": f"{log_entry}"
-    } 
+    if source_ip != hostname and source_ip != "8.8.4.4":
+        log_entry = f"Host {source_ip} scanned {event.count} ports"
+        log_obj = {
+            "Time": f"{timestamp}",
+            "Type": f"port scan",
+            "Target": f"{hostname}",
+            "Info": f"{log_entry}"
+        } 
 
-    send_metrics(log_obj)
+        send_metrics(log_obj)
 
 def handle_login_attempt(cpu, data, size):
     event = b_login_attempt["events"].event(data)
