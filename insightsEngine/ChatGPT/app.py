@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta, timezone
 
 import requests
+import json
 import time
 
 app = Flask(__name__)
@@ -52,12 +53,11 @@ def test_event():
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             result = requests.get("http://10.10.248.155:3100/loki/api/v1/query_range", headers=headers, params=query_params)
 
-            print(result.json(), type(result.json()))
-            resolved = result.json()['data']['result'][0]['values'][0]
+            resolved = json.dumps(result.json()['data']['result'][0]['values'][0][1])
+            resolved['Severity'] = 'Resolved'
             print(resolved)
-            # resolved['Severity'] = 'Resolved'
 
-            # logger.info(resolved)            
+            logger.info(resolved)            
             # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             # print(result.content)
             return jsonify({"message": "Loki data marked as solved successfully"}), 201
