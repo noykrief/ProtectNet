@@ -1,22 +1,23 @@
 import json
-import logging
-import logging_loki
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 
 from openai import OpenAI
 
-# Setup Loki configurations in order to send logs        
-logging_loki.emitter.LokiEmitter.level_tag = "level"
+def configure_logger():
+  import logging
+  import logging_loki
+  # Setup Loki configurations in order to send logs        
+  logging_loki.emitter.LokiEmitter.level_tag = "level"
 
-handler = logging_loki.LokiHandler(
-        url="http://10.10.248.155:3100/loki/api/v1/push",
-        version="1",
-        )
+  handler = logging_loki.LokiHandler(
+          url="http://10.10.248.155:3100/loki/api/v1/push",
+          version="1",
+          )
+  logger = logging.getLogger("LokiLogger")
+  logger.addHandler(handler)
 
-logger = logging.getLogger("LokiLogger")
-
-logger.addHandler(handler)
+  return logger
 
 # MongoDB connection setup
 client = MongoClient("mongodb://localhost:27717/")
@@ -129,6 +130,8 @@ def test_insight(log_type, target):
 # Main function in order to be able to send data without the API from the agent.
 def main():
   system_calls = []
+
+  logger = configure_logger()
 
 # Append events stored on MongoDB
   minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")

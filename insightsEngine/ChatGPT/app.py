@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from generator import test_insight
+from generator import test_insight, configure_logger
 from pymongo import MongoClient
 from datetime import datetime, timedelta, timezone
 
@@ -30,6 +30,7 @@ def test_event():
         log_time = request.args.get('time')
         log_type = request.args.get('log_type')
         target = request.args.get('target')
+        logger = configure_logger()
         
         if (test_insight(log_type, target)):
 
@@ -54,8 +55,7 @@ def test_event():
             resolved = result.content
             resolved['Severity'] = 'Resolved'
 
-            requests.post("http://10.10.248.155:5000/data", json=resolved)
-            
+            logger.info(resolved)            
             # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             # print(result.content)
             return jsonify({"message": "Loki data marked as solved successfully"}), 201
