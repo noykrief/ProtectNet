@@ -40,11 +40,11 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "system",
-        "content": "For each list of JSONs: \n1. Print distinct logs with suspicious methods indicating potential security threats."
-        "\n2. Use this header:\nid: ['id'],\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
+        "content": "For each list of JSONs: \n1.Perform distinct on identical info fields and print log with potential security threats."
+        "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
         "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
-        "\n3. Distinct similar and identical logs if they indicate a widespread issue or repeat on the same host."
+        "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
       },
       {
