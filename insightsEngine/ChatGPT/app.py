@@ -33,9 +33,9 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
-            start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
-            end_time = utc_log_time.isoformat().replace("+00:00", "Z")
+            # utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
+            # start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
+            # end_time = utc_log_time.isoformat().replace("+00:00", "Z")
 
             # params = {
             #     'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
@@ -44,13 +44,11 @@ def test_event():
             # }
 
             query_params = {
-                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
-                'start': start_time,
-                'end': end_time
+                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
             }
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-            result = requests.get("http://10.10.248.155:3100/loki/api/v1/query_range", headers=headers, params=query_params)
+            result = requests.get("http://10.10.248.155:3100/loki/api/v1/query", headers=headers, params=query_params)
             print(result.json())
 
             resolved = result.content
