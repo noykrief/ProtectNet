@@ -44,7 +44,7 @@ def generate_insights(ebpf_info):
         "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
         "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
-        "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
+        "\n3. Group similar and identical logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
       },
       {
