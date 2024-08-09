@@ -4,6 +4,8 @@ import requests
 import socket
 import threading
 import ctypes
+import subprocess
+import pwd
 
 # Define the event data structure in ctypes
 class Event(ctypes.Structure):
@@ -14,13 +16,18 @@ class Event(ctypes.Structure):
     ]
 
 # Get the hostname
-hostname = socket.gethostname()
+hostname = subprocess.run("hostname -I | awk '{print $1}'", shell=True, capture_output=True, text=True).stdout.strip()
 
 # Load eBPF programs
 b_fork_bomb = BPF(src_file="fork_bomb.c")
-b_file_deletion = BPF(src_file="file_deletion.c")
 b_file_creation = BPF(src_file="file_creation.c")
 b_port_scan = BPF(src_file="port_scan.c")
+b_login_attempt = BPF(src_file="login_attempt.c")
+b_sudo_command = BPF(src_file="sudo_command.c")
+
+def send_metrics(log_obj):
+    #print(log_obj)
+    requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_fork_bomb_trace(b, hostname):
     while True:
@@ -32,56 +39,79 @@ def handle_fork_bomb_trace(b, hostname):
                 log_pid = int(parts[0])
                 log_tgid = int(parts[1])
                 log_count = int(parts[2])
-                # Get current time
                 timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-                # Log the metrics
-                log_entry = f"{log_pid},{log_tgid},{log_count}"
+                
+                log_entry = f"PID {log_pid} forked {log_count} subprocesses"
                 log_obj = {
-                        "Time": f"{timestamp}",
-                        "Type": "fork bomb",
-                        "Target": f"{hostname}",
-                        "Info": f"{log_entry}"
-                        }
-                print(log_obj)
-                requests.post("http://10.10.248.155:5000/data", json=log_obj)
+                    "Time": f"{timestamp}",
+                    "Type": "fork bomb",
+                    "Target": f"{hostname}",
+                    "Info": f"{log_entry}"
+                }                
 
-def handle_file_deletion(cpu, data, size):
-    event = b_file_deletion["events"].event(data)
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-    log_entry = f"{event.pid},{event.uid},{event.comm}"
-    log_obj = {
-            "Time": f"{timestamp}",
-            "Type": f"file deletion",
-            "Target": f"{event.filename}",
-            "Info": f"{log_entry}"
-            }
-    print(log_obj)
-    requests.post("http://10.10.248.155:5000/data", json=log_obj)
+                send_metrics(log_obj)
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-    log_entry = f"{event.pid},{event.uid},{event.comm}"
+    filename = event.filename.decode('utf-8')
+    username = pwd.getpwuid(event.uid).pw_name
+    log_entry = f"User {username} with UID {event.uid} created file {filename}"
     log_obj = {
-            "Time": f"{timestamp}",
-            "Type": f"file creation",
-            "Target": f"{event.filename}",
-            "Info": f"{log_entry}"
-            }
-    print(log_obj)
-    requests.post("http://10.10.248.155:5000/data", json=log_obj)
+        "Time": f"{timestamp}",
+        "Type": f"file creation",
+        "Target": f"{hostname}",
+        "Info": f"{log_entry}"
+    }
+
+    send_metrics(log_obj)
 
 def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-    log_entry = f"{socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))},{event.count}"
+    source_ip = socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))
+    log_entry = f"Host {source_ip} scanned {event.count} ports"
     log_obj = {
+        "Time": f"{timestamp}",
+        "Type": f"port scan",
+        "Target": f"{hostname}",
+        "Info": f"{log_entry}"
+    } 
+
+    send_metrics(log_obj)
+
+def handle_login_attempt(cpu, data, size):
+    event = b_login_attempt["events"].event(data)
+    if event.uid != 0:
+        timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+        username = pwd.getpwuid(event.uid).pw_name
+        source_ip = subprocess.run(f"ss -tp | grep ssh | grep $(ps -o ppid= -p {event.pid}) | awk -F: '{{print $8}}' | sed 's/]//g'", shell=True, capture_output=True, text=True).stdout.strip()
+        log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH from {source_ip}"
+        log_obj = {
             "Time": f"{timestamp}",
-            "Type": f"port scan",
+            "Type": f"login attempt",
             "Target": f"{hostname}",
             "Info": f"{log_entry}"
-            }
-    print(log_obj)
+        }
+
+        send_metrics(log_obj)
+
+def handle_sudo_command(cpu, data, size):
+    event = b_sudo_command["events"].event(data)
+    if event.uid != 0:
+        timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+        command = subprocess.run(f"ps -p {event.pid} -o args --no-headers", shell=True, capture_output=True, text=True).stdout.strip()
+        if command and 'sudo' in command:
+            username = pwd.getpwuid(event.uid).pw_name
+            log_entry = f"User {username} with UID {event.uid} executed command '{command}'"
+            log_obj = {
+                "Time": f"{timestamp}",
+                "Type": f"sudo command",
+                "Target": f"{hostname}",
+                "Info": f"{log_entry}"
+            }            
+
+            send_metrics(log_obj)
 
 def monitor_fork_bomb_trace():
     b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")
@@ -91,15 +121,6 @@ def monitor_fork_bomb_trace():
     while True:
         try:
             handle_fork_bomb_trace(b_fork_bomb, hostname)
-        except KeyboardInterrupt:
-            break
-
-def monitor_file_deletion():
-    b_file_deletion["events"].open_perf_buffer(handle_file_deletion)
-
-    while True:
-        try:
-            b_file_deletion.perf_buffer_poll()
         except KeyboardInterrupt:
             break
 
@@ -125,16 +146,33 @@ def monitor_port_scan():
         except KeyboardInterrupt:
             break
 
+def monitor_login_attempt():
+    b_login_attempt.attach_kprobe(event="__x64_sys_execve", fn_name="trace_execve")
+
+    b_login_attempt["events"].open_perf_buffer(handle_login_attempt)
+
+    while True:
+        try:
+            b_login_attempt.perf_buffer_poll()
+        except KeyboardInterrupt:
+            break
+
+def monitor_sudo_command():
+    b_sudo_command.attach_kprobe(event="__x64_sys_execve", fn_name="trace_execve")
+
+    b_sudo_command["events"].open_perf_buffer(handle_sudo_command)
+
+    while True:
+        try:
+            b_sudo_command.perf_buffer_poll()
+        except KeyboardInterrupt:
+            break
+
 def main():
     # Start a thread for fork trace handling
     fork_bomb_trace_thread = threading.Thread(target=monitor_fork_bomb_trace)
     fork_bomb_trace_thread.daemon = True
     fork_bomb_trace_thread.start()
-
-    # Start a thread for file deletion events
-    file_deletion_thread = threading.Thread(target=monitor_file_deletion)
-    file_deletion_thread.daemon = True
-    file_deletion_thread.start()
 
     # Start a thread for file open events
     file_creation_thread = threading.Thread(target=monitor_file_creation)
@@ -146,7 +184,17 @@ def main():
     port_scan_thread.daemon = True
     port_scan_thread.start()
 
-    print("Tracing fork bombs, file deletions, files creations and port scans events... Ctrl-C to end.")
+    # Start a thread for login attempt events
+    login_attempt_thread = threading.Thread(target=monitor_login_attempt)
+    login_attempt_thread.daemon = True
+    login_attempt_thread.start()
+
+    # Start a thread for sudo command events
+    sudo_command_thread = threading.Thread(target=monitor_sudo_command)
+    sudo_command_thread.daemon = True
+    sudo_command_thread.start()
+
+    print("Tracing cybersecurity events... Ctrl-C to end.")
 
     # Keep the main thread alive
     try:
