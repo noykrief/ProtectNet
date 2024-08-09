@@ -122,8 +122,6 @@ def generate_insights(ebpf_info):
   
 
 def test_insight(log_type, target):
-  system_calls = []
-
   # Append events stored on MongoDB
   minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
