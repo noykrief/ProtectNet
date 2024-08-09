@@ -40,7 +40,7 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "system",
-        "content": "For each list of JSONs: \n1. Analyze all log types within each JSON and generate a log entry for each log type that indicates a potential security threat."
+        "content": "For each list of JSONs: \n1. Analyze all log types within all JSONs and generate a log entry per log type that indicates a potential security threat."
         "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
         "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
