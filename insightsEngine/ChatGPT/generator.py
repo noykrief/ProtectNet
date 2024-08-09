@@ -40,11 +40,11 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "system",
-        "content": "For each list of JSONs: \n1. Analyze all log types within all JSONs and generate a log entry per log type that indicates a potential security threat."
+        "content": "For each list of JSONs: \n1. Print logs with suspicious methods indicating potential security threats."
         "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
         "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
-        "\n3. Group and merge similar logs from different hosts if they indicate a widespread issue or repeat on the same host, ensuring only one entry per unique info. Gather all IDs of similar logs into a list under the id field.'"
+        "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
       },
       {
