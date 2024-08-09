@@ -55,6 +55,7 @@ def test_event():
 
             resolved = json.loads(result.json()['data']['result'][0]['values'][0][1])
             resolved['Severity'] = 'Resolved'
+            
             print(resolved)
 
             logger.info(json.dumps(resolved))            
