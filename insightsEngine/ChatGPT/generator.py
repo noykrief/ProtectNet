@@ -179,7 +179,7 @@ def main():
                   "Info": doc.get("Info"),
                   "Action_Items": threat.get("Action_Items")
                 }
-
+                print(json.dumps(log_obj))
                 logger.info(json.dumps(log_obj))
                 break
     
