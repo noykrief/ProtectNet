@@ -40,10 +40,9 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "system",
-        "content": "For each list of JSONs: \n1.Perform distinct on identical info fields and print log with potential security threats."
+        "content": "For each list of JSONs: \n1.Group similar or identical logs and print logs with suspoicious methods indicating potential security threats."
         "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
-        "\nInfo: 'info', Action_Items: 'action_items'.\n- Severity: Based on inferred threat level."
-        "\n- Info: info log related to all similar logs of the same type."
+        "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
         "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
@@ -71,14 +70,12 @@ def generate_insights(ebpf_info):
           {
             "id": ["6696d34a2e0e2aa954764a58", "6696v34a2e4e2aa984764a58"],
             "Severity": "MEDIUM",
-            "Info": "Multiple login attempts have been made by the user IdanDo from 192.168.1.105",
             "Action_Items": ["Consider blocking the source IP by running the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`.\n"
             "Consider changing the user password by running the following command: `sudo passwd IdanDo <password>`"]
           },
           {
             "id": ["f696d34a2e0e2aa954764a56"],
             "Severity": "HIGH",
-            "Info": "Fork Bomb detected by the PID 2004",
             "Action_Items": ["Kill PID by running the following command: `kill -9 PID`.\n"
             "Consider investigating the source PID and restrict the PID to avoid future attacks."]  
           }
@@ -93,7 +90,7 @@ def generate_insights(ebpf_info):
           },
           {
             "id": "f696d6ba2e0e2ac944769a56",
-            "info": "Host 192.168.1.106 scanned 2 ports"
+            "info": "Host 192.168.1.106 scanned 2048 ports"
           }
         ])
       },
@@ -103,9 +100,14 @@ def generate_insights(ebpf_info):
           {
             "id": ["f696d6va2e0e2ac954764a56"],
             "Severity": "CRITICAL",
-            "Info": "User DoronKG created a suspicious file creation under /etc.",
             "Action_Items": ["Verify that user DoronKG has the right permissions to create a file under /etc.\n"
             "Consider investigating the file and changing it's ACL by running the following command: `sudo setfacl <owner>:<permissions> /etc/malicious`."]
+          },
+          {
+            "id": ["f696d6ba2e0e2ac944769a56"],
+            "Severity": "LOW",
+            "Action_Items": ["Consider blocking the source IP by running the follwoing command: `sudo iptables -A INPUT -s 192.168.1.106 -j DROP`.\n"
+            "Verify that only relevant ports are open by running the following command: `sudo netstat -tupln`."]  
           }
         ])
       },
@@ -120,6 +122,8 @@ def generate_insights(ebpf_info):
   
 
 def test_insight(log_type, target):
+  system_calls = []
+
   # Append events stored on MongoDB
   minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
   cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
@@ -156,10 +160,9 @@ def main():
     for threat in potential_threats:
       valid_id = threat.get("id")
       valid_severity = threat.get("Severity")
-      valid_info = threat.get("Info")
       valid_action_item = threat.get("Action_Items")    
 
-      if not all([valid_id, valid_severity, valid_info, valid_action_item]):
+      if not all([valid_id, valid_severity, valid_action_item]):
               continue
 
       for id in threat.get("id"):
@@ -171,7 +174,7 @@ def main():
                   "Log_Type": doc.get("Type"),
                   "Severity": threat.get("Severity"),
                   "Targets": doc.get("Target"),
-                  "Info": threat.get("Info"),
+                  "Info": doc.get("Info"),
                   "Action_Items": threat.get("Action_Items")
                 }
                 print(json.dumps(log_obj))
