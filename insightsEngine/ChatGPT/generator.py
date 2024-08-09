@@ -71,14 +71,14 @@ def generate_insights(ebpf_info):
           {
             "id": ["6696d34a2e0e2aa954764a58", "6696v34a2e4e2aa984764a58"],
             "Severity": "MEDIUM",
-            "Info": "Multiple login attempts have been made by the user IdanDo from 192.168.1.105"
+            "Info": "Multiple login attempts have been made by the user IdanDo from 192.168.1.105",
             "Action_Items": ["Consider blocking the source IP by running the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`.\n"
             "Consider changing the user password by running the following command: `sudo passwd IdanDo <password>`"]
           },
           {
             "id": ["f696d34a2e0e2aa954764a56"],
             "Severity": "HIGH",
-            "Info": "Fork Bomb detected by the PID 2004"
+            "Info": "Fork Bomb detected by the PID 2004",
             "Action_Items": ["Kill PID by running the following command: `kill -9 PID`.\n"
             "Consider investigating the source PID and restrict the PID to avoid future attacks."]  
           }
@@ -93,7 +93,7 @@ def generate_insights(ebpf_info):
           },
           {
             "id": "f696d6ba2e0e2ac944769a56",
-            "info": "Host 192.168.1.106 scanned 2048 ports"
+            "info": "Host 192.168.1.106 scanned 2 ports"
           }
         ])
       },
@@ -103,16 +103,9 @@ def generate_insights(ebpf_info):
           {
             "id": ["f696d6va2e0e2ac954764a56"],
             "Severity": "CRITICAL",
-            "Info": "User DoronKG created a suspicious file creation under /etc."
+            "Info": "User DoronKG created a suspicious file creation under /etc.",
             "Action_Items": ["Verify that user DoronKG has the right permissions to create a file under /etc.\n"
             "Consider investigating the file and changing it's ACL by running the following command: `sudo setfacl <owner>:<permissions> /etc/malicious`."]
-          },
-          {
-            "id": ["f696d6ba2e0e2ac944769a56"],
-            "Severity": "LOW",
-            "Info": "Host 192.168.1.106 scanned 2048 ports"
-            "Action_Items": ["Consider blocking the source IP by running the follwoing command: `sudo iptables -A INPUT -s 192.168.1.106 -j DROP`.\n"
-            "Verify that only relevant ports are open by running the following command: `sudo netstat -tupln`."]  
           }
         ])
       },
