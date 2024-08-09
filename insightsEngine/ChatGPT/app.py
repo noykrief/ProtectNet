@@ -34,8 +34,8 @@ def test_event():
         
         if (test_insight(log_type, target)):
 
-            # utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
-            # start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
+            utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
+            start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
             # end_time = utc_log_time.isoformat().replace("+00:00", "Z")
 
             # params = {
@@ -45,7 +45,8 @@ def test_event():
             # }
 
             query_params = {
-                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
+                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
+                'start': start_time
             }
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
