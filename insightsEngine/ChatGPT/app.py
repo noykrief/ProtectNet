@@ -37,17 +37,28 @@ def test_event():
             start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
             end_time = utc_log_time.isoformat().replace("+00:00", "Z")
 
-            params = {
-                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
-                'start': start_time,
-                'end': end_time
+            # params = {
+            #     'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
+            #     'start': start_time,
+            #     'end': end_time
+            # }
+
+            query_params = {
+                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
             }
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-
-            result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
+            result = requests.get("http://10.10.248.155:3100/loki/api/v1/query", headers=headers, params=query_params)
             print(result.content)
-            return jsonify({"message": "Loki data deleted successfully"}), 201
+
+            resolved = result.content
+            resolved['Severity'] = 'Resolved'
+
+            requests.post("http://10.10.248.155:5000/data", json=resolved)
+            
+            # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
+            # print(result.content)
+            return jsonify({"message": "Loki data marked as solved successfully"}), 201
 
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
