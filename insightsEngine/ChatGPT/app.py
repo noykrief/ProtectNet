@@ -44,12 +44,14 @@ def test_event():
             # }
 
             query_params = {
-                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`'
+                'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
+                'start': start_time,
+                'end': end_time
             }
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-            result = requests.get("http://10.10.248.155:3100/loki/api/v1/query", headers=headers, params=query_params)
-            print(result.content)
+            result = requests.get("http://10.10.248.155:3100/loki/api/v1/query_range", headers=headers, params=query_params)
+            print(result.json())
 
             resolved = result.content
             resolved['Severity'] = 'Resolved'
