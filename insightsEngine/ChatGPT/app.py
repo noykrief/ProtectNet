@@ -52,7 +52,8 @@ def test_event():
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             result = requests.get("http://10.10.248.155:3100/loki/api/v1/query_range", headers=headers, params=query_params)
 
-            resolved = result.json().data.result[0].values[0]
+            print(result.json(), type(result.json()))
+            resolved = result.json()['data']['result'][0]['values'][0]
             print(resolved)
             # resolved['Severity'] = 'Resolved'
 
