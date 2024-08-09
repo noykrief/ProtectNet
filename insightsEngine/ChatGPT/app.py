@@ -61,7 +61,8 @@ def test_event():
             # logger.warn(json.dumps(resolved))            
             result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             print(result.content)
-            return jsonify({"message": "Loki data marked as solved successfully"}), 201
+            return jsonify({"message": "Loki deleted log successfully"}), 201
+        return jsonify({"message": "Event is still relevant"}), 201
 
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
