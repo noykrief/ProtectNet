@@ -54,7 +54,7 @@ def test_event():
             resolved = result.content
             resolved['Severity'] = 'Resolved'
 
-            requests.post("http://10.10.248.155:5000/data", data=resolved)
+            requests.post("http://10.10.248.155:5000/data", json=resolved)
             
             # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             # print(result.content)
