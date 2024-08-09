@@ -53,11 +53,11 @@ def test_event():
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             result = requests.get("http://10.10.248.155:3100/loki/api/v1/query_range", headers=headers, params=query_params)
 
-            resolved = json.dumps(result.json()['data']['result'][0]['values'][0][1])
+            resolved = json.loads(result.json()['data']['result'][0]['values'][0][1])
             resolved['Severity'] = 'Resolved'
             print(resolved)
 
-            logger.info(resolved)            
+            logger.info(json.dumps(resolved))            
             # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
             # print(result.content)
             return jsonify({"message": "Loki data marked as solved successfully"}), 201
