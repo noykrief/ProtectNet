@@ -56,11 +56,11 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
 
     while true
     do
-        for i in \$(seq 1 10);
+        for i in \$(seq 1 60);
         do
             create_child_process
         done
-        sleep 2
+        sleep 30
     done
     EOF
     ```
