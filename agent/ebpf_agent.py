@@ -25,13 +25,14 @@ b_port_scan = BPF(src_file="port_scan.c")
 b_login_attempt = BPF(src_file="login_attempt.c")
 b_sudo_command = BPF(src_file="sudo_command.c")
 
-def send_metrics(event_type, log_entry):
+def send_metrics(event_type, log_entry, count=1):
     timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
     log_obj = {
                     "Time": f"{timestamp}",
                     "Type": f"{event_type}",
                     "Target": f"{hostname}",
-                    "Info": f"{log_entry}"
+                    "Info": f"{log_entry}",
+                    "Count": f"{count}"
                 }
 
     #print(log_obj)
@@ -50,7 +51,7 @@ def handle_fork_bomb_trace(b, hostname):
 
                 event_type = "fork bomb"
                 log_entry = f"PID {log_pid} forked {log_count} subprocesses"
-                send_metrics(event_type, log_entry)
+                send_metrics(event_type, log_entry, log_count)
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
@@ -66,8 +67,9 @@ def handle_port_scan(cpu, data, size):
     source_ip = socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))
     if source_ip != hostname and source_ip != "8.8.4.4":
         event_type = "port scan"
-        log_entry = f"Host {source_ip} scanned {event.count} ports"
-        send_metrics(event_type, log_entry)
+        count = f"{event.count}"
+        log_entry = f"Host {source_ip} scanned {count} ports"
+        send_metrics(event_type, log_entry, count)
 
 def handle_login_attempt(cpu, data, size):
     event = b_login_attempt["events"].event(data)
