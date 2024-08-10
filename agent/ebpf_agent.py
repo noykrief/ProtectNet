@@ -65,7 +65,7 @@ def handle_file_creation(cpu, data, size):
 def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
     source_ip = socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))
-    if source_ip != hostname and source_ip != "8.8.4.4":
+    if source_ip != hostname and source_ip != "10.10.248.155" and source_ip != "8.8.4.4":
         event_type = "port scan"
         count = f"{event.count}"
         log_entry = f"Host {source_ip} scanned {count} ports"
