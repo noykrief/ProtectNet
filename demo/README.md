@@ -23,7 +23,7 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
     Perform a port scan on the target machine to identify open ports.
 
     ```bash
-    nmap -p 1-30 10.10.248.158
+    sudo nmap -p 1-30 10.10.248.158
     ```
 
 1. **SSH into the Target Machine as the Demo User**
