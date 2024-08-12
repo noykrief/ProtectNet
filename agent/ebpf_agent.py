@@ -26,7 +26,7 @@ b_login_attempt = BPF(src_file="login_attempt.c")
 b_sudo_command = BPF(src_file="sudo_command.c")
 
 def send_metrics(event_type, log_entry, count=1):
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     log_obj = {
                     "Time": f"{timestamp}",
                     "Type": f"{event_type}",
