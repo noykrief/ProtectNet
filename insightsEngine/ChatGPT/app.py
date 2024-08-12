@@ -37,13 +37,6 @@ def test_event():
 
             utc_log_time =  datetime.strptime(log_time, "%Y-%m-%dT%H:%M:%S").astimezone(timezone.utc)
             start_time = (utc_log_time - timedelta(seconds=30)).isoformat().replace("+00:00", "Z")
-            # end_time = utc_log_time.isoformat().replace("+00:00", "Z")
-
-            # params = {
-            #     'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
-            #     'start': start_time,
-            #     'end': end_time
-            # }
 
             query_params = {
                 'query': '{logger="LokiLogger"}' + f'|= `{target}` | json | Log_Type = `{log_type}` | Time = `{log_time}`',
@@ -59,8 +52,6 @@ def test_event():
             print(resolved)
 
             logger.warning(json.dumps(resolved))            
-            # result = requests.post("http://10.10.248.155:3100/loki/api/v1/delete", headers=headers, params=params)
-            # print(result.content)
             return jsonify({"message": "Log has been resolved successfully"}), 201
         return jsonify({"message": "Event is still relevant"}), 201
 
