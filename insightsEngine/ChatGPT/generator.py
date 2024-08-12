@@ -220,8 +220,8 @@ def main():
                 "Action_Items": threat.get("Action_Items")
                 }
         
-       print(json.dumps(log_obj))
-       logger.warning(json.dumps(log_obj))
+      print(json.dumps(log_obj))
+      logger.warning(json.dumps(log_obj))
 
 if __name__ == "__main__":
   main()
