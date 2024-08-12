@@ -1,48 +1,8 @@
-# Imports
 import json
 from pymongo import MongoClient
 from datetime import datetime, timedelta
+
 from openai import OpenAI
-
-# Global Variables 
-minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
-aggregate_pipeline = [
-    {
-        "$match": {
-            "Time": {
-                "$gt": minute_timedelta
-            }
-        }
-    },
-    {
-        "$facet": {
-            "countOne": [
-                { "$match": { "Count": '1' } }
-            ],
-            "maxCounts": [
-                { "$match": { "Count": { "$ne": '1' } } },
-                {
-                    "$group": {
-                        "_id": "$Type",
-                        "maxCount": { "$max": "$Count" },
-                        "doc": { "$first": "$$ROOT" }
-                    }
-                },
-                {
-                    "$replaceRoot": { "newRoot": "$doc" }
-                }
-            ]
-        }
-    },
-    {
-        "$project": {
-            "result": { "$concatArrays": ["$countOne", "$maxCounts"] }
-        }
-    },
-    { "$unwind": "$result" },
-    { "$replaceRoot": { "newRoot": "$result" } }
-]
-
 
 def configure_logger():
   import logging
@@ -174,9 +134,12 @@ def test_insight(log_type, target):
 def main():
   system_calls = []
   documents = []
+
   logger = configure_logger()
-  
-  cursor = collection.aggregate(aggregate_pipeline)
+
+# Append events stored on MongoDB
+  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
+  cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
      documents.append(document)
      log_obj = {
