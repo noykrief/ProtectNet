@@ -205,19 +205,21 @@ def main():
 
       for id in threat.get("id"):
           for doc in documents:
-             if (id == str(doc.get("_id"))):
+             if (id == str(doc.get("_id")) and doc.get("Target") == threat.get("Target")):
                 ids.append(id)
                 info_list.append(doc.get("Info"))
-                
                 break
+    
     log_obj = {
                 "id": ids,
                 "Time": doc.get("Time"),
+                "Log_Type": "systemcall",
                 "Severity": threat.get("Severity"),
                 "Targets": doc.get("Target"),
                 "Info": info_list,
                 "Action_Items": threat.get("Action_Items")
               }
+    
     print(json.dumps(log_obj))
     logger.warning(json.dumps(log_obj))
 
