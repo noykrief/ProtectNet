@@ -177,11 +177,13 @@ def main():
   logger = configure_logger()
   
   cursor = collection.aggregate(aggregate_pipeline)
+
   for document in cursor:
      documents.append(document)
      log_obj = {
             "info": document["Info"],
-            "id": str(document["_id"])}
+            "id": str(document["_id"])
+     }
      system_calls.append(log_obj)
 
   if system_calls:
@@ -192,6 +194,8 @@ def main():
     print("Printing insights results...")
 
         # Validate that each threat returned by the model has the required fields for error handling
+    info_list = []
+
     for threat in potential_threats:
       valid_id = threat.get("id")
       valid_severity = threat.get("Severity")
@@ -203,18 +207,21 @@ def main():
       for id in threat.get("id"):
           for doc in documents:
              if (id == str(doc.get("_id"))):
-                log_obj = {
-                  "id": id,
-                  "Time": doc.get("Time"),
-                  "Log_Type": doc.get("Type"),
-                  "Severity": threat.get("Severity"),
-                  "Targets": doc.get("Target"),
-                  "Info": doc.get("Info"),
-                  "Action_Items": threat.get("Action_Items")
-                }
-                print(json.dumps(log_obj))
-                logger.warning(json.dumps(log_obj))
+                info_list.append(doc.get("Info"))
                 break
     
+      log_obj = {
+                "id": threat.get("id"),
+                "Time": doc.get("Time"),
+                "Log_Type": "SystemCall",
+                "Severity": threat.get("Severity"),
+                "Target": doc.get("Target"),
+                "Info": info_list,
+                "Action_Items": threat.get("Action_Items")
+                }
+        
+      print(json.dumps(log_obj))
+      logger.warning(json.dumps(log_obj))
+
 if __name__ == "__main__":
   main()
