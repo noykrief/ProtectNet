@@ -213,7 +213,6 @@ def main():
     log_obj = {
                 "id": ids,
                 "Time": doc.get("Time"),
-                "Log_Type": doc.get("Type"),
                 "Severity": threat.get("Severity"),
                 "Targets": doc.get("Target"),
                 "Info": info_list,
