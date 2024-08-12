@@ -25,7 +25,16 @@ b_port_scan = BPF(src_file="port_scan.c")
 b_login_attempt = BPF(src_file="login_attempt.c")
 b_sudo_command = BPF(src_file="sudo_command.c")
 
-def send_metrics(log_obj):
+def send_metrics(event_type, log_entry, count=1):
+    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    log_obj = {
+                    "Time": f"{timestamp}",
+                    "Type": f"{event_type}",
+                    "Target": f"{hostname}",
+                    "Info": f"{log_entry}",
+                    "Count": f"{count}"
+                }
+
     #print(log_obj)
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
@@ -39,79 +48,48 @@ def handle_fork_bomb_trace(b, hostname):
                 log_pid = int(parts[0])
                 log_tgid = int(parts[1])
                 log_count = int(parts[2])
-                timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-                
-                log_entry = f"PID {log_pid} forked {log_count} subprocesses"
-                log_obj = {
-                    "Time": f"{timestamp}",
-                    "Type": "fork bomb",
-                    "Target": f"{hostname}",
-                    "Info": f"{log_entry}"
-                }                
 
-                send_metrics(log_obj)
+                event_type = "fork bomb"
+                log_entry = f"PID {log_pid} forked {log_count} subprocesses"
+                send_metrics(event_type, log_entry, log_count)
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     filename = event.filename.decode('utf-8')
     username = pwd.getpwuid(event.uid).pw_name
-    log_entry = f"User {username} with UID {event.uid} created file {filename}"
-    log_obj = {
-        "Time": f"{timestamp}",
-        "Type": f"file creation",
-        "Target": f"{hostname}",
-        "Info": f"{log_entry}"
-    }
 
-    send_metrics(log_obj)
+    event_type = "file creation"
+    log_entry = f"User {username} with UID {event.uid} created file {filename}"
+    send_metrics(event_type, log_entry)
 
 def handle_port_scan(cpu, data, size):
     event = ctypes.cast(data, ctypes.POINTER(Event)).contents
-    timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     source_ip = socket.inet_ntoa(ctypes.c_uint32(event.src_ip).value.to_bytes(4, 'little'))
-    log_entry = f"Host {source_ip} scanned {event.count} ports"
-    log_obj = {
-        "Time": f"{timestamp}",
-        "Type": f"port scan",
-        "Target": f"{hostname}",
-        "Info": f"{log_entry}"
-    } 
-
-    send_metrics(log_obj)
+    if source_ip != hostname and source_ip != "10.10.248.155" and source_ip != "8.8.4.4":
+        event_type = "port scan"
+        count = f"{event.count}"
+        log_entry = f"Host {source_ip} scanned {count} ports"
+        send_metrics(event_type, log_entry, count)
 
 def handle_login_attempt(cpu, data, size):
     event = b_login_attempt["events"].event(data)
     if event.uid != 0:
-        timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
         username = pwd.getpwuid(event.uid).pw_name
         source_ip = subprocess.run(f"ss -tp | grep ssh | grep $(ps -o ppid= -p {event.pid}) | awk -F: '{{print $8}}' | sed 's/]//g'", shell=True, capture_output=True, text=True).stdout.strip()
+        event_type = "login attempt"
         log_entry = f"User {username} with UID {event.uid} successfully logged-in via SSH from {source_ip}"
-        log_obj = {
-            "Time": f"{timestamp}",
-            "Type": f"login attempt",
-            "Target": f"{hostname}",
-            "Info": f"{log_entry}"
-        }
-
-        send_metrics(log_obj)
+        send_metrics(event_type, log_entry)
 
 def handle_sudo_command(cpu, data, size):
     event = b_sudo_command["events"].event(data)
     if event.uid != 0:
-        timestamp = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
         command = subprocess.run(f"ps -p {event.pid} -o args --no-headers", shell=True, capture_output=True, text=True).stdout.strip()
         if command and 'sudo' in command:
             username = pwd.getpwuid(event.uid).pw_name
-            log_entry = f"User {username} with UID {event.uid} executed command '{command}'"
-            log_obj = {
-                "Time": f"{timestamp}",
-                "Type": f"sudo command",
-                "Target": f"{hostname}",
-                "Info": f"{log_entry}"
-            }            
 
-            send_metrics(log_obj)
+            event_type = "sudo command"
+            log_entry = f"User {username} with UID {event.uid} executed command '{command}'"
+            send_metrics(event_type, log_entry)
 
 def monitor_fork_bomb_trace():
     b_fork_bomb.attach_kprobe(event="__x64_sys_clone", fn_name="trace_fork")

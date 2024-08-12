@@ -1,63 +1,26 @@
-# Imports
+import os
+import csv
+import ast
 import json
+import logging
+import logging_loki
 from pymongo import MongoClient
 from datetime import datetime, timedelta
+
 from openai import OpenAI
+from colorama import Fore
 
-# Global Variables 
-minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
-aggregate_pipeline = [
-    {
-        "$match": {
-            "Time": {
-                "$gt": minute_timedelta
-            }
-        }
-    },
-    {
-        "$facet": {
-            "countOne": [
-                { "$match": { "Count": '1' } }
-            ],
-            "maxCounts": [
-                { "$match": { "Count": { "$ne": '1' } } },
-                {
-                    "$group": {
-                        "_id": "$Type",
-                        "maxCount": { "$max": "$Count" },
-                        "doc": { "$first": "$$ROOT" }
-                    }
-                },
-                {
-                    "$replaceRoot": { "newRoot": "$doc" }
-                }
-            ]
-        }
-    },
-    {
-        "$project": {
-            "result": { "$concatArrays": ["$countOne", "$maxCounts"] }
-        }
-    },
-    { "$unwind": "$result" },
-    { "$replaceRoot": { "newRoot": "$result" } }
-]
+# Setup Loki configurations in order to send logs        
+logging_loki.emitter.LokiEmitter.level_tag = "level"
 
+handler = logging_loki.LokiHandler(
+        url="http://10.10.248.155:3100/loki/api/v1/push",
+        version="1",
+        )
 
-def configure_logger():
-  import logging
-  import logging_loki
-  # Setup Loki configurations in order to send logs        
-  logging_loki.emitter.LokiEmitter.level_tag = "level"
+logger = logging.getLogger("LokiLogger")
 
-  handler = logging_loki.LokiHandler(
-          url="http://10.10.248.155:3100/loki/api/v1/push",
-          version="1",
-          )
-  logger = logging.getLogger("LokiLogger")
-  logger.addHandler(handler)
-
-  return logger
+logger.addHandler(handler)
 
 # MongoDB connection setup
 client = MongoClient("mongodb://localhost:27717/")
@@ -80,9 +43,11 @@ def generate_insights(ebpf_info):
       },
       {
         "role": "system",
-        "content": "For each list of JSONs: \n1.Print logs with suspicious methods indicating potential security threats."
-        "\n2. Use this header:\nid: 'id',\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
-        "\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
+        "content": "For each list of JSONs: \n1. Print logs with suspicious methods indicating potential security threats."
+        "\n2. Use this header:\nTime: 'timestamp',\nLog_Type: 'log_type',\nTargets: 'targets',"
+        "\nSeverity: NEUTRAL/LOW/MEDIUM/HIGH/CRITICAL,"
+        "\nLead: 'lead',\nInfo: 'information',\nAction_Items: 'action_items'.\n- Severity: Based on inferred threat level."
+        "\n- Lead: Explain the gathered logs.\n- Info: Detailed threat information."
         "\n- Action_Items: suggest immediate actions to address the potential threat."
         "\n3. Group similar logs from different hosts if they indicate a widespread issue or repeat on the same host."
         "\n4. Censor passwords in the output."
@@ -91,16 +56,16 @@ def generate_insights(ebpf_info):
         "role": "user",
         "content": ",".join(str(element) for element in [
           {
-            "id": "6696d34a2e0e2aa954764a58",
-            "info": "User IdanDo with UID 1234 successfully logged-in via SSH from 192.168.1.105"
+            "Time": "2024-04-15T12:50:00Z",
+            "Log Type": "System Call",
+            "Target": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
           },
           {
-             "id": "6696v34a2e4e2aa984764a58",
-            "info": "User IdanDo with UID 1234 successfully logged-in via SSH from 192.168.1.105"
-          },
-          {
-            "id": "f696d34a2e0e2aa954764a56",
-            "info": "PID 2004 forked 54 subprocesses"
+            "Time": "2024-04-15T12:50:26Z",
+            "Log Type": "System Call",
+            "Target": "192.168.1.105",
+            "Info": "Failed SSH connection from PID 1234"
           }
         ])
       },
@@ -108,16 +73,14 @@ def generate_insights(ebpf_info):
         "role": "assistant",
         "content": ",".join(str(element) for element in [
           {
-            "id": ["6696d34a2e0e2aa954764a58", "6696v34a2e4e2aa984764a58"],
+            "Time": "2024-04-15T12:51:00Z",
+            "Log_Type": "System Call",
+            "Targets": ["192.168.1.105"],
             "Severity": "MEDIUM",
-            "Action_Items": ["Consider blocking the source IP by running the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`.\n"
-            "Consider changing the user password by running the following command: `sudo passwd IdanDo <password>`"]
-          },
-          {
-            "id": ["f696d34a2e0e2aa954764a56"],
-            "Severity": "HIGH",
-            "Action_Items": ["Kill PID by running the following command: `kill -9 PID`.\n"
-            "Consider investigating the source PID and restrict the PID to avoid future attacks."]  
+            "Lead": "Multiple login attempts detected from IP 192.168.1.105",
+            "Info": "The host is vulnerable to DOS attack / port scan on port 22",
+            "Action_Items": ["Consider investigation the source IP and applying IP-based blocking or rate limiting.\n"
+            "To block this IP using iptables, use the following command: `sudo iptables -A INPUT -s 192.168.1.105 -j DROP`"]
           }
         ])
       },
@@ -125,12 +88,10 @@ def generate_insights(ebpf_info):
         "role": "user",
         "content": ",".join(str(element) for element in [
           {
-            "id": "f696d6va2e0e2ac954764a56",
-            "info": "User DoronKG with UID 5674 created file /etc/malicious"
-          },
-          {
-            "id": "f696d6ba2e0e2ac944769a56",
-            "info": "Host 192.168.1.106 scanned 2048 ports"
+            "Time": "2024-04-15T12:47:15Z",
+            "Log Type": "System Call",
+            "Target": "192.168.1.102",
+            "Info": "502, open, /etc/shadow"
           }
         ])
       },
@@ -138,16 +99,13 @@ def generate_insights(ebpf_info):
         "role": "assistant",
         "content": ",".join(str(element) for element in [
           {
-            "id": ["f696d6va2e0e2ac954764a56"],
-            "Severity": "CRITICAL",
-            "Action_Items": ["Verify that user DoronKG has the right permissions to create a file under /etc.\n"
-            "Consider investigating the file and changing it's ACL by running the following command: `sudo setfacl <owner>:<permissions> /etc/malicious`."]
-          },
-          {
-            "id": ["f696d6ba2e0e2ac944769a56"],
-            "Severity": "LOW",
-            "Action_Items": ["Consider blocking the source IP by running the follwoing command: `sudo iptables -A INPUT -s 192.168.1.106 -j DROP`.\n"
-            "Verify that only relevant ports are open by running the following command: `sudo netstat -tupln`."]  
+            "Time": "2024-04-15T12:47:15Z",
+            "Log_Type": "System Call",
+            "Targets": ["192.168.1.102"],
+            "Severity": "NEUTRAL",
+            "Lead": "PID 502 attempted to open a sensitive file",
+            "Info": "Sensitive data could be exposed",
+            "Action_Items": ["Manage ACL on the sensitive file", "Kill suspicious PID 502 using `sudo kill -p PID`"]
           }
         ])
       },
@@ -158,63 +116,51 @@ def generate_insights(ebpf_info):
     ]
   )
 
-  return [json.loads(completion.choices[0].message.content)]
+  return (completion.choices[0].message.content)
   
-
-def test_insight(log_type, target):
-  # Append events stored on MongoDB
-  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
-  cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
-  for document in cursor:
-    if log_type == document['Type'] and target == document['Target']:
-       return False
-  return True
 
 # Main function in order to be able to send data without the API from the agent.
 def main():
   system_calls = []
-  documents = []
-  logger = configure_logger()
-  
-  cursor = collection.aggregate(aggregate_pipeline)
+
+# Append events stored on MongoDB
+  minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+  cursor = collection.find({ "Time": { "$gt": f"{minute_timedelta}" } })
   for document in cursor:
-     documents.append(document)
-     log_obj = {
-            "info": document["Info"],
-            "id": str(document["_id"])}
-     system_calls.append(log_obj)
+    system_calls.append(document)
 
   if system_calls:
     print("Starting to analyze your data...")
 
     potential_threats = generate_insights(system_calls)
 
+    potential_threats = [ast.literal_eval(potential_threats)]
+
     print("Printing insights results...")
+    for syscall in potential_threats:
+     
+      severity = syscall["Severity"].lower()
+      syscall = json.dumps(syscall)
+      match severity:
+          case "neutral":
+              logger.info(syscall)
+              print(syscall)
+          case "low":
+              logger.info(syscall)
+              print(syscall)
+          case "medium":
+              logger.warning(syscall)
+              print(syscall)
+          case "high":
+              logger.error(syscall)
+              print(syscall)
+          case "critical":
+              logger.error(syscall)
+              print(syscall)
+          case _:
+              logger.info(syscall)
+              print(syscall)
 
-        # Validate that each threat returned by the model has the required fields for error handling
-    for threat in potential_threats:
-      valid_id = threat.get("id")
-      valid_severity = threat.get("Severity")
-      valid_action_item = threat.get("Action_Items")    
-
-      if not all([valid_id, valid_severity, valid_action_item]):
-              continue
-
-      for id in threat.get("id"):
-          for doc in documents:
-             if (id == str(doc.get("_id"))):
-                log_obj = {
-                  "id": id,
-                  "Time": doc.get("Time"),
-                  "Log_Type": doc.get("Type"),
-                  "Severity": threat.get("Severity"),
-                  "Targets": doc.get("Target"),
-                  "Info": doc.get("Info"),
-                  "Action_Items": threat.get("Action_Items")
-                }
-                print(json.dumps(log_obj))
-                logger.warning(json.dumps(log_obj))
-                break
     
 if __name__ == "__main__":
   main()
