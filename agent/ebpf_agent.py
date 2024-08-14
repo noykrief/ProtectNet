@@ -35,7 +35,7 @@ def send_metrics(event_type, log_entry, count=1):
                     "Count": f"{count}"
                 }
 
-    #print(log_obj)
+    print(log_entry)
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_fork_bomb_trace(b, hostname):
