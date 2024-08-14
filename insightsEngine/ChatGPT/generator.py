@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 
 # Global Variables 
-minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
+minute_timedelta = (datetime.now() - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S")
 aggregate_pipeline = [
     {
         "$match": {
