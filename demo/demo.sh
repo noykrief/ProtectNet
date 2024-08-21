@@ -1,7 +1,24 @@
-echo "Scanning ports on remote host 10.10.248.158"
-echo $PASSWORD | sudo -S nmap -p 1-30 10.10.248.158
+echo "###########################################################"
+echo "#####          Scanning ports on remote host          #####"
+echo "###########################################################"
+echo ""
+echo "   $ sudo nmap -p 1-30 10.10.248.158"
+sleep 5
+echo ""
+sudo nmap -p 1 1-30 10.10.248.158
+echo ""
+echo ""
+sleep 5
 
-sleep 2
 
-echo "SSH into remote host 10.10.248.158 as demo user"
-sshpass -p 1 ssh -t demo@10.10.248.158 'echo 1 | sudo -S /home/cs401/ProtectNet/demo/attack.sh'
+echo "###########################################################"
+echo "#####        SSH into remote host as demo user        #####"
+echo "###########################################################"
+echo ""
+echo "   $ ssh demo@10.10.248.158"
+sleep 5
+echo ""
+sshpass -p 1 ssh -t demo@10.10.248.158 'sshpass -p 1 sudo /home/demo/attack.sh'
+echo ""
+echo ""
+sleep 5
