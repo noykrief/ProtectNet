@@ -37,11 +37,11 @@ trap 'kill \$(jobs -p); exit' SIGINT SIGTERM
 
 while true
 do
-    for i in \$(seq 1 60);
+    for i in \$(seq 1 110);
     do
         create_child_process
     done
-    sleep 30
+    sleep 60
 done
 EOF
 echo ""
@@ -113,18 +113,6 @@ sleep 3
 
 echo "###########################################################"
 echo "#####            Reloading Linux daemons              #####"
-echo "###########################################################"
-echo ""
-echo "   $ sudo touch /etc/systemd/system/fork.service"
-sleep 3
-echo ""
-sshpass -p $PASSWORD sudo touch /etc/systemd/system/fork.service
-echo ""
-echo ""
-sleep 3
-
-echo "###########################################################"
-echo "#####     Creating a daemon for fork bomb attack      #####"
 echo "###########################################################"
 echo ""
 echo "   $ sudo systemctl daemon-reload"
