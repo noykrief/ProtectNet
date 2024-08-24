@@ -35,7 +35,7 @@ def send_metrics(event_type, log_entry, count=1):
                     "Count": f"{count}"
                 }
 
-    #print(log_obj)
+    print(log_entry)
     requests.post("http://10.10.248.155:5000/data", json=log_obj)
 
 def handle_fork_bomb_trace(b, hostname):
@@ -85,6 +85,10 @@ def handle_sudo_command(cpu, data, size):
     if event.uid != 0:
         command = subprocess.run(f"ps -p {event.pid} -o args --no-headers", shell=True, capture_output=True, text=True).stdout.strip()
         if command and 'sudo' in command:
+            sudo_index = command.find('sudo')
+            if sudo_index != -1:
+                command = command[sudo_index:]
+
             username = pwd.getpwuid(event.uid).pw_name
 
             event_type = "sudo command"
