@@ -16,7 +16,7 @@ Run the demo.sh script without sudo, and it will execute the attack itself.
 ~/ProtectNet/demo/demo.sh
 ```
 
-## automatic execution
+## Automatic Execution
 
 In case you want to run the attack on your own in live, all you need to do is run the following steps:
 
