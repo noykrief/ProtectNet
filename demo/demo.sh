@@ -1,5 +1,10 @@
 read -p "Enter the password for demo user: " PASSWORD
 
+Green='\033[0;32m'
+Color_Off='\033[0m'
+
+echo -e "$Green"
+
 echo "###########################################################"
 echo "#####          Scanning ports on remote host          #####"
 echo "###########################################################"
@@ -23,3 +28,5 @@ sshpass -p $PASSWORD scp attack.sh demo@10.10.248.158:///home/demo/
 echo ""
 echo ""
 sleep 5
+
+echo -e "$Color_Off"
