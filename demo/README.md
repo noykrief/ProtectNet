@@ -8,14 +8,6 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
 - `sudo` privileges on the target machine.
 - Basic understanding of systemd services and bash scripting.
 
-## Execute Script for automatic execution
-
-Run the demo.sh script without sudo, and it will execute the attack itself.
-
-```bash
-~/ProtectNet/demo/demo.sh
-```
-
 ## Automatic Execution
 
 In case you want to run the attack on your own in live, all you need to do is run the following steps:
