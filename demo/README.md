@@ -4,18 +4,44 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
 
 ## Prerequisites
 
-- SSH access to the target machine (ST24-401D) with user `cs401`.
+- SSH access to the target machine (ST24-401D - 10.10.248.157) with user `cs401`.
 - `sudo` privileges on the target machine.
 - Basic understanding of systemd services and bash scripting.
 
-## Steps
+## Automatic Execution
+
+In case you want to run the attack on your own in live, all you need to do is run the following steps:
+
+1. **Execute Demo Script**
+
+    Run the demo script and insert the password for the demo user:
+
+    ```bash
+    ./demo.sh
+    ```
+1. **SSH into the Target Machine as the Demo User**
+
+   Connect via SSH to remote host as `demo` user:
+
+   ```bash
+   ssh demo@10.10.248.158
+   ```
+1. **Execute Attack Script**
+
+   Run the attack script and insert the password for the demo user:
+
+   ```bash
+   ./attack.sh
+   ```
+   
+## Explanation - Steps in Script
 
 1. **Login to the Target Machine**
 
-    Use SSH to log in to the target machine with the `cs401` user.
+    Use SSH to log in to the attacker machine with the `cs401` user.
 
     ```bash
-    ssh cs401@ST24-401D
+    ssh cs401@10.10.248.157
     ```
 
 1. **Run a Port Scan**
