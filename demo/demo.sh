@@ -10,15 +10,14 @@ echo ""
 echo ""
 sleep 5
 
-
 echo "###########################################################"
-echo "#####        SSH into remote host as demo user        #####"
+echo "#####      Coppying attack script to remote host      #####"
 echo "###########################################################"
 echo ""
-echo "   $ ssh demo@10.10.248.158"
+echo "   $ sudo scp attack.sh demo@10.10.248.158/home/demo/"
 sleep 5
 echo ""
-sshpass -p 1 ssh -t demo@10.10.248.158 'sshpass -p 1 sudo /home/demo/attack.sh'
+sshpass -p $PASSWORD sudo scp attack.sh demo@10.10.248.158/home/demo/
 echo ""
 echo ""
 sleep 5
