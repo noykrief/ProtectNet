@@ -4,7 +4,7 @@ This demo showcases the setup and execution of a fork bomb on a remote machine. 
 
 ## Prerequisites
 
-- SSH access to the target machine (ST24-401D) with user `cs401`.
+- SSH access to the target machine (ST24-401D - 10.10.248.157) with user `cs401`.
 - `sudo` privileges on the target machine.
 - Basic understanding of systemd services and bash scripting.
 
@@ -16,40 +16,40 @@ Run the demo.sh script without sudo, and it will execute the attack itself.
 ~/ProtectNet/demo/demo.sh
 ```
 
-## Semi-manual execution
+## automatic execution
 
 In case you want to run the attack on your own in live, all you need to do is run the following steps:
 
-1. **Run a Port Scan**
+1. **Execute Demo Script**
 
-    Perform a port scan on the target machine to identify open ports.
+    Run the demo script and insert the password for the demo user:
 
     ```bash
-    sudo nmap -p 1-30 10.10.248.158
+    ./demo.sh
     ```
 1. **SSH into the Target Machine as the Demo User**
 
-   Switch to the demo user on the target machine.
+   Connect via SSH to remote host as `demo` user:
 
    ```bash
-   sshpass -p 1 ssh -t demo@10.10.248.158
+   ssh demo@10.10.248.158
    ```
 1. **Execute Attack Script**
 
-   Run the attack script with sudo privileges.
+   Run the attack script and insert the password for the demo user:
 
    ```bash
-   echo 1 | sudo -S /home/cs401/attack.sh
+   ./attack.sh
    ```
    
 ## Explanation - Steps in Script
 
 1. **Login to the Target Machine**
 
-    Use SSH to log in to the target machine with the `cs401` user.
+    Use SSH to log in to the attacker machine with the `cs401` user.
 
     ```bash
-    ssh cs401@ST24-401D
+    ssh cs401@10.10.248.157
     ```
 
 1. **Run a Port Scan**
