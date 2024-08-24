@@ -220,7 +220,7 @@ def main():
 
         print(json.dumps(log_obj))
         logger.warning(json.dumps(log_obj))
-        time.sleep(60)
+    time.sleep(60)
 
 
 if __name__ == "__main__":
