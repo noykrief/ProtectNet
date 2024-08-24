@@ -12,7 +12,7 @@ echo ""
 echo "   $ sudo nmap -p 1-30 10.10.248.158"
 sleep 5
 echo ""
-sudo nmap -p 1 1-30 10.10.248.158
+sudo nmap -p 1-30 10.10.248.158
 echo ""
 echo ""
 sleep 5
