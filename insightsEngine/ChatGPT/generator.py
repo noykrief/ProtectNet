@@ -133,7 +133,7 @@ def test_insight(log_type, target):
 # Main function in order to be able to send data without the API from the agent.
 def main():
   while True:
-    minute_timedelta = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S")
+    minute_timedelta = (datetime.now() - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
     aggregate_pipeline = [
     {
         "$match": {
