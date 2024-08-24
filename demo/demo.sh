@@ -1,3 +1,5 @@
+read -p "Enter the password for demo user: " PASSWORD
+
 echo "###########################################################"
 echo "#####          Scanning ports on remote host          #####"
 echo "###########################################################"
