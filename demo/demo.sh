@@ -17,7 +17,7 @@ echo ""
 echo "   $ sudo scp attack.sh demo@10.10.248.158/home/demo/"
 sleep 5
 echo ""
-sshpass -p $PASSWORD sudo scp attack.sh demo@10.10.248.158/home/demo/
+sshpass -p $PASSWORD sudo scp attack.sh demo@10.10.248.158:///home/demo/
 echo ""
 echo ""
 sleep 5
