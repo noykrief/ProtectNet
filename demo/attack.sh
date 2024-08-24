@@ -1,3 +1,5 @@
+read -p "Enter the password for demo user: " PASSWORD
+
 Green='\033[0;32m'
 Color_Off='\033[0m'
 
