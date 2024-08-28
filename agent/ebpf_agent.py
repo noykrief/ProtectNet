@@ -6,6 +6,7 @@ import threading
 import ctypes
 import subprocess
 import pwd
+import os
 
 # Define the event data structure in ctypes
 class Event(ctypes.Structure):
@@ -48,10 +49,10 @@ def handle_fork_bomb_trace(b, hostname):
                 log_pid = int(parts[0])
                 log_tgid = int(parts[1])
                 log_count = int(parts[2])
-
-                event_type = "fork bomb"
-                log_entry = f"PID {log_pid} forked {log_count} subprocesses"
-                send_metrics(event_type, log_entry, log_count)
+                if log_pid != os.getpid():
+                    event_type = "fork bomb"
+                    log_entry = f"PID {log_pid} forked {log_count} subprocesses"
+                    send_metrics(event_type, log_entry, log_count)
 
 def handle_file_creation(cpu, data, size):
     event = b_file_creation["events"].event(data)
